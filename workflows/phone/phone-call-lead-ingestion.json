@@ -1,0 +1,2395 @@
+{
+  "name": "Data Ingestion Kameni - Finanzierung - DEV",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Kameni Immobilien Acquisition Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Customer Name"
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "placeholder": "test@example.com"
+            },
+            {
+              "fieldLabel": "Phone Number",
+              "placeholder": "004917623294582"
+            },
+            {
+              "fieldLabel": "Opt in",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6b68e76e-223d-491d-85e4-95b6a80d4a0f",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -1632,
+        -464
+      ],
+      "webhookId": "79a90c97-37fd-4483-983e-d24c02791ccc-dev"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ac7991df-9eb6-4ffe-b27d-3b43c0ac91ae",
+              "leftValue": "={{ $json['Opt in'] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "caeba5b1-e1b8-49b1-b166-eeae438aef13",
+      "name": "If Opt-In",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1408,
+        -464
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer Phone Number:  {{ $json['Phone Number'] }}\nCustomer First Name: {{ $json['Customer Name'] }}\nCustomer Email Address: {{ $json['Email'] }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a smart assistant that processes customer contact information to prepare for automated dialling and personalisation.\n\nYour two tasks are:\n### 1. Phone number Formatting\n\nTake any phone number as entered by the customer and convert it to the standard E.164 international format.\n\nRules:\n\n- Detect the country from the number's structure or prefix.\n- Return only the E.164 format: `+[CountryCode][NationalNumber]`, with no spaces, dashes, or brackets.\n- Clean the input first by removing all non-digit characters except a leading `+`.\n- If the number:\n\n  - Starts with `+` → clean and validate it.\n  - Starts with `00` → convert to `+`.\n  - Starts with a national prefix (e.g. `0`) → remove and replace with the correct country code based on number structure.\n- If the number is incomplete or the country cannot be confidently determined, return: `Invalid number`.\n\nExamples:\n\n- `415 555 2671` → `+14155552671` (United States)\n- `06 12 34 56 78` → `+33612345678` (France)\n- `0049 151 23456789` → `+4915123456789` (Germany)\n- `0151 23456789` → `+4915123456789` (Germany)\n- `+61 412 345 678` → `+61412345678` (Australia)\n\n### 2. First Name Extraction\n\nExtract the customer's **first name** from their full name input.\n\nGuidelines:\n\n- Support a wide range of ethnically diverse names.\n- The first name is usually the first word unless the input uses reversed formats (e.g. `Kim, Hana`). Handle these gracefully.\n- Remove any extra titles (e.g. Mr, Mrs, Dr) or honorifics.\n- Return only the first name, capitalized properly."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "3da4dacc-12f8-4258-aec1-14ebaf788192",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1184,
+        -560
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "3ee2b284-fa6e-4890-8bc3-11ae61d99a61",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1184,
+        -336
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "3jDEORaDQgY0e79T",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Customer Phone Number\": \"The customer phone number in E.164 format\",\n\t\"Customer First name\": \"The first name of the customer\",\n    \"Customer Email Address\": \"The customer email address\"\n}"
+      },
+      "id": "d09ffd2c-6628-4a7d-85af-d8e0bf9cf014",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1056,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appn65GylpcWvByIP",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Test"
+        },
+        "table": {
+          "__rl": true,
+          "cachedResultName": "customers",
+          "mode": "list",
+          "value": "tblbtkyGl7pSOpClC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email": "={{ $json.output['Customer Email Address']}}",
+            "Environment": "dev",
+            "First Name": "={{ $json.output['Customer First name'] }}",
+            "Name": "={{ $('On form submission').item.json['Customer Name'] }}",
+            "Opt In": "={{ $('On form submission').item.json['Opt in'] === 'Yes' ? true : false }}",
+            "Phone": "={{ $json.output['Customer Phone Number'] }}",
+            "Pipeline Stage": "Qualifying",
+            "Source": "Form",
+            "Age": 0,
+            "Number of Children": 0,
+            "Net Salary": 0,
+            "Budget": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Environment",
+              "displayName": "Environment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "prod",
+                  "value": "prod"
+                },
+                {
+                  "name": "dev",
+                  "value": "dev"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Form",
+                  "value": "Form"
+                },
+                {
+                  "name": "Inbound Call",
+                  "value": "Inbound Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Outbound",
+                  "value": "Outbound"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pipeline Stage",
+              "displayName": "Pipeline Stage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Qualifying",
+                  "value": "Qualifying"
+                },
+                {
+                  "name": "Awaiting Documents",
+                  "value": "Awaiting Documents"
+                },
+                {
+                  "name": "Documents Validated",
+                  "value": "Documents Validated"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Lost",
+                  "value": "Lost"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opt In",
+              "displayName": "Opt In",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Qualified Lead",
+              "displayName": "Qualified Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nationality",
+              "displayName": "Nationality",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Marital Status",
+              "displayName": "Marital Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Single",
+                  "value": "Single"
+                },
+                {
+                  "name": "Married",
+                  "value": "Married"
+                },
+                {
+                  "name": "Divorced",
+                  "value": "Divorced"
+                },
+                {
+                  "name": "Widowed",
+                  "value": "Widowed"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Number of Children",
+              "displayName": "Number of Children",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Net Salary",
+              "displayName": "Net Salary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "0-3 months",
+                  "value": "0-3 months"
+                },
+                {
+                  "name": "3-6 months",
+                  "value": "3-6 months"
+                },
+                {
+                  "name": "6-12 months",
+                  "value": "6-12 months"
+                },
+                {
+                  "name": "12+ months",
+                  "value": "12+ months"
+                },
+                {
+                  "name": "Just exploring",
+                  "value": "Just exploring"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mortgage Status",
+              "displayName": "Mortgage Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "No mortgage yet - needs help",
+                  "value": "No mortgage yet - needs help"
+                },
+                {
+                  "name": "Mortgage in principle",
+                  "value": "Mortgage in principle"
+                },
+                {
+                  "name": "Mortgage approved",
+                  "value": "Mortgage approved"
+                },
+                {
+                  "name": "Already has mortgage",
+                  "value": "Already has mortgage"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Property Type",
+              "displayName": "Property Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Apartment",
+                  "value": "Apartment"
+                },
+                {
+                  "name": "House",
+                  "value": "House"
+                },
+                {
+                  "name": "Detached house",
+                  "value": "Detached house"
+                },
+                {
+                  "name": "Semi-detached house",
+                  "value": "Semi-detached house"
+                },
+                {
+                  "name": "Plot of land",
+                  "value": "Plot of land"
+                },
+                {
+                  "name": "Commercial",
+                  "value": "Commercial"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Preferred Areas",
+              "displayName": "Preferred Areas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call SID",
+              "displayName": "Call SID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call Status",
+              "displayName": "Call Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Initiated",
+                  "value": "Not Initiated"
+                },
+                {
+                  "name": "Initiated",
+                  "value": "Initiated"
+                },
+                {
+                  "name": "Answered",
+                  "value": "Answered"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "No Answer",
+                  "value": "No Answer"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Vorgangsnummer",
+              "displayName": "Vorgangsnummer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Number",
+              "displayName": "ID Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Selbstauskunft Submitted",
+              "displayName": "Selbstauskunft Submitted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Folder URL",
+              "displayName": "Documents Folder URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Complete",
+              "displayName": "Documents Complete",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Calendly Booking",
+              "displayName": "Calendly Booking",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0a012265-9824-42c3-b8bb-c30dcc63296c",
+      "name": "Create a record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        -464
+      ],
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "Q4E2GVpHjyxqL1oI",
+          "name": "Airtable Demo Test OAuth2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "from": "+12176948447",
+        "to": "={{ $json.fields['Phone'] }}",
+        "message": "=Hey {{ $json.fields['First Name'] }}, thanks for opting into our qualifying call! Our AI agent will be phoning you from +12176948447 to find out more about your situation. Please accept the call and answer the screening questions.",
+        "options": {}
+      },
+      "id": "206a6ca4-aad1-42c9-a5d9-637af7621934",
+      "name": "Send a text message",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        -464
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "HwSM8Pyd4IvbCes6",
+          "name": "Twilio Test Demo 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "a50f75d0-542a-4988-bdfd-ac9f0ecdb8c6",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        -464
+      ],
+      "webhookId": "f946b789-c93d-4cf4-8de8-903f7f173ada-dev"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/convai/twilio/outbound-call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "sk_153f0380339e4e0b155fcdb0f637f1ef03dc65ddddef9ea0"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"agent_id\": \"agent_0801khgdz2jeek0r874z6zcw875g\",\n    \"agent_phone_number_id\": \"phnum_0501khnp015he458kqrem15j2m39\",\n    \"to_number\": \"{{ $('Create a record').item.json.fields['Phone'] }}\"\n  }",
+        "options": {}
+      },
+      "id": "d5770bbe-62f7-47e4-a677-dafecef6e141",
+      "name": "11 Labs Calling Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -160,
+        -464
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appn65GylpcWvByIP",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Test"
+        },
+        "table": {
+          "__rl": true,
+          "cachedResultName": "customers",
+          "mode": "list",
+          "value": "tblbtkyGl7pSOpClC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Call SID": "={{ $json.callSid }}",
+            "Call Status": "Initiated",
+            "Conversation ID": "={{ $json.conversation_id }}",
+            "id": "={{ $('Create a record').item.json.id }}",
+            "Age": 0,
+            "Number of Children": 0,
+            "Net Salary": 0,
+            "Budget": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Environment",
+              "displayName": "Environment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "prod",
+                  "value": "prod"
+                },
+                {
+                  "name": "dev",
+                  "value": "dev"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Form",
+                  "value": "Form"
+                },
+                {
+                  "name": "Inbound Call",
+                  "value": "Inbound Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Outbound",
+                  "value": "Outbound"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pipeline Stage",
+              "displayName": "Pipeline Stage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Qualifying",
+                  "value": "Qualifying"
+                },
+                {
+                  "name": "Awaiting Documents",
+                  "value": "Awaiting Documents"
+                },
+                {
+                  "name": "Documents Validated",
+                  "value": "Documents Validated"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Lost",
+                  "value": "Lost"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opt In",
+              "displayName": "Opt In",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Qualified Lead",
+              "displayName": "Qualified Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nationality",
+              "displayName": "Nationality",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Marital Status",
+              "displayName": "Marital Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Single",
+                  "value": "Single"
+                },
+                {
+                  "name": "Married",
+                  "value": "Married"
+                },
+                {
+                  "name": "Divorced",
+                  "value": "Divorced"
+                },
+                {
+                  "name": "Widowed",
+                  "value": "Widowed"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Number of Children",
+              "displayName": "Number of Children",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Net Salary",
+              "displayName": "Net Salary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "0-3 months",
+                  "value": "0-3 months"
+                },
+                {
+                  "name": "3-6 months",
+                  "value": "3-6 months"
+                },
+                {
+                  "name": "6-12 months",
+                  "value": "6-12 months"
+                },
+                {
+                  "name": "12+ months",
+                  "value": "12+ months"
+                },
+                {
+                  "name": "Just exploring",
+                  "value": "Just exploring"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mortgage Status",
+              "displayName": "Mortgage Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "No mortgage yet - needs help",
+                  "value": "No mortgage yet - needs help"
+                },
+                {
+                  "name": "Mortgage in principle",
+                  "value": "Mortgage in principle"
+                },
+                {
+                  "name": "Mortgage approved",
+                  "value": "Mortgage approved"
+                },
+                {
+                  "name": "Already has mortgage",
+                  "value": "Already has mortgage"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Property Type",
+              "displayName": "Property Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Apartment",
+                  "value": "Apartment"
+                },
+                {
+                  "name": "House",
+                  "value": "House"
+                },
+                {
+                  "name": "Detached house",
+                  "value": "Detached house"
+                },
+                {
+                  "name": "Semi-detached house",
+                  "value": "Semi-detached house"
+                },
+                {
+                  "name": "Plot of land",
+                  "value": "Plot of land"
+                },
+                {
+                  "name": "Commercial",
+                  "value": "Commercial"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Preferred Areas",
+              "displayName": "Preferred Areas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call SID",
+              "displayName": "Call SID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call Status",
+              "displayName": "Call Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Initiated",
+                  "value": "Not Initiated"
+                },
+                {
+                  "name": "Initiated",
+                  "value": "Initiated"
+                },
+                {
+                  "name": "Answered",
+                  "value": "Answered"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "No Answer",
+                  "value": "No Answer"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Vorgangsnummer",
+              "displayName": "Vorgangsnummer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Number",
+              "displayName": "ID Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Selbstauskunft Submitted",
+              "displayName": "Selbstauskunft Submitted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Folder URL",
+              "displayName": "Documents Folder URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Complete",
+              "displayName": "Documents Complete",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Calendly Booking",
+              "displayName": "Calendly Booking",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "53ef0e1a-15d2-4f37-8f91-7d20f4ab0349",
+      "name": "Update record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        -464
+      ],
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "Q4E2GVpHjyxqL1oI",
+          "name": "Airtable Demo Test OAuth2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0a45c953-a3a2-4074-8df8-c37d416836bb-dev",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "bf18588d-0826-4e1e-bf2c-2f6006f4f4f6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1632,
+        -16
+      ],
+      "webhookId": "0a45c953-a3a2-4074-8df8-c37d416836bb-dev",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"received\", \"message\": \"Transcript accepted for processing\" }",
+        "options": {}
+      },
+      "id": "respond-webhook-001",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1408,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"nationality\": \"Cameroonian\",\n  \"age\": 35,\n  \"maritalStatus\": \"Single | Married | Divorced | Widowed | Unknown\",\n  \"numberChildren\": 2,\n  \"netSalary\": 3000,\n  \"budgetRange\": 350000,\n  \"timeline\": \"0-3 months | 3-6 months | 6-12 months | 12+ months | Just exploring\",\n  \"mortgageStatus\": \"No mortgage yet - needs help | Mortgage in principle | Mortgage approved | Already has mortgage | Unknown\",\n  \"propertyType\": \"Apartment | House | Detached house | Semi-detached house | Plot of land | Commercial | Other\",\n  \"preferredAreas\": \"Headington, Cowley, central Oxford\",\n  \"qualifiedLead\": true\n}"
+      },
+      "id": "5648d75e-3e19-42c1-88ea-8ba8cd5b8d5f",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1056,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "14e38aa9-4710-4ac5-8ca9-e5a98ebc2726",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1184,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "3jDEORaDQgY0e79T",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Transcript Summary: {{ $json.body.data.transcript.map(t => t.role + \": \" + t.message).join(\"\\n\")  }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a smart assistant that extracts structured answers from a phone conversation transcript.\n\nFocus on returning **only the buyer's answers**, not the questions themselves.\n\nExtract these 10 fields with the SPECIFIED format:\n\n1. **nationality** (string): The customer's nationality (e.g. \"Cameroonian\", \"German\", \"French\")\n2. **age** (NUMBER, integer): The customer's age. Convert text to number (e.g. \"forty\" -> 40)\n3. **maritalStatus** (string, MUST match one of): \"Single\", \"Married\", \"Divorced\", \"Widowed\", \"Unknown\"\n4. **numberChildren** (NUMBER, integer): Number of children (0 if none mentioned)\n5. **netSalary** (NUMBER, integer in EUR): Net monthly salary as a number, no currency symbol (e.g. \"3000 euros\" -> 3000)\n6. **budgetRange** (NUMBER, integer in EUR): Property budget as a number (e.g. \"around 400k\" -> 400000)\n7. **timeline** (string, MUST match one of): \"0-3 months\", \"3-6 months\", \"6-12 months\", \"12+ months\", \"Just exploring\"\n8. **mortgageStatus** (string, MUST match one of): \"No mortgage yet - needs help\", \"Mortgage in principle\", \"Mortgage approved\", \"Already has mortgage\", \"Unknown\"\n9. **propertyType** (string, MUST match one of): \"Apartment\", \"House\", \"Detached house\", \"Semi-detached house\", \"Plot of land\", \"Commercial\", \"Other\"\n10. **preferredAreas** (string): Free text list of areas/neighbourhoods mentioned\n\nAlso include:\n- **qualifiedLead** (boolean): true if customer has clear timeline (within 12 months), reasonable budget/income, and clarity on mortgage status; otherwise false\n\nIMPORTANT:\n- For singleSelect fields, you MUST use one of the exact values listed.\n- For NUMBER fields, return integers without quotes, no currency symbols.\n- If a field cannot be determined from the transcript, use \"Unknown\" for selects, 0 for numbers, empty string for text."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "ea6a2db5-2b16-47bb-92ed-9182ad5c3b8e",
+      "name": "Format Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1184,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appn65GylpcWvByIP",
+          "mode": "list",
+          "cachedResultName": "n8n Demo Test"
+        },
+        "table": {
+          "__rl": true,
+          "cachedResultName": "customers",
+          "mode": "list",
+          "value": "tblbtkyGl7pSOpClC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Age": "={{ $json.output.age }}",
+            "Budget": "={{ $json.output.budgetRange }}",
+            "Call Status": "Completed",
+            "Conversation ID": "={{ $('Webhook').item.json.body.data.conversation_id }}",
+            "Marital Status": "={{ $json.output.maritalStatus }}",
+            "Mortgage Status": "={{ $json.output.mortgageStatus }}",
+            "Nationality": "={{ $json.output.nationality }}",
+            "Net Salary": "={{ $json.output.netSalary }}",
+            "Number of Children": "={{ $json.output.numberChildren }}",
+            "Pipeline Stage": "Awaiting Documents",
+            "Preferred Areas": "={{ $json.output.preferredAreas }}",
+            "Property Type": "={{ $json.output.propertyType }}",
+            "Qualified Lead": "={{ $json.output.qualifiedLead }}",
+            "Timeline": "={{ $json.output.timeline }}"
+          },
+          "matchingColumns": [
+            "Conversation ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Environment",
+              "displayName": "Environment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "prod",
+                  "value": "prod"
+                },
+                {
+                  "name": "dev",
+                  "value": "dev"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Form",
+                  "value": "Form"
+                },
+                {
+                  "name": "Inbound Call",
+                  "value": "Inbound Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Outbound",
+                  "value": "Outbound"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pipeline Stage",
+              "displayName": "Pipeline Stage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Qualifying",
+                  "value": "Qualifying"
+                },
+                {
+                  "name": "Awaiting Documents",
+                  "value": "Awaiting Documents"
+                },
+                {
+                  "name": "Documents Validated",
+                  "value": "Documents Validated"
+                },
+                {
+                  "name": "Booked",
+                  "value": "Booked"
+                },
+                {
+                  "name": "Lost",
+                  "value": "Lost"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Opt In",
+              "displayName": "Opt In",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Qualified Lead",
+              "displayName": "Qualified Lead",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nationality",
+              "displayName": "Nationality",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Marital Status",
+              "displayName": "Marital Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Single",
+                  "value": "Single"
+                },
+                {
+                  "name": "Married",
+                  "value": "Married"
+                },
+                {
+                  "name": "Divorced",
+                  "value": "Divorced"
+                },
+                {
+                  "name": "Widowed",
+                  "value": "Widowed"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Number of Children",
+              "displayName": "Number of Children",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Net Salary",
+              "displayName": "Net Salary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "0-3 months",
+                  "value": "0-3 months"
+                },
+                {
+                  "name": "3-6 months",
+                  "value": "3-6 months"
+                },
+                {
+                  "name": "6-12 months",
+                  "value": "6-12 months"
+                },
+                {
+                  "name": "12+ months",
+                  "value": "12+ months"
+                },
+                {
+                  "name": "Just exploring",
+                  "value": "Just exploring"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mortgage Status",
+              "displayName": "Mortgage Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "No mortgage yet - needs help",
+                  "value": "No mortgage yet - needs help"
+                },
+                {
+                  "name": "Mortgage in principle",
+                  "value": "Mortgage in principle"
+                },
+                {
+                  "name": "Mortgage approved",
+                  "value": "Mortgage approved"
+                },
+                {
+                  "name": "Already has mortgage",
+                  "value": "Already has mortgage"
+                },
+                {
+                  "name": "Unknown",
+                  "value": "Unknown"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Property Type",
+              "displayName": "Property Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Apartment",
+                  "value": "Apartment"
+                },
+                {
+                  "name": "House",
+                  "value": "House"
+                },
+                {
+                  "name": "Detached house",
+                  "value": "Detached house"
+                },
+                {
+                  "name": "Semi-detached house",
+                  "value": "Semi-detached house"
+                },
+                {
+                  "name": "Plot of land",
+                  "value": "Plot of land"
+                },
+                {
+                  "name": "Commercial",
+                  "value": "Commercial"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Preferred Areas",
+              "displayName": "Preferred Areas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Conversation ID",
+              "displayName": "Conversation ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call SID",
+              "displayName": "Call SID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Call Status",
+              "displayName": "Call Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Not Initiated",
+                  "value": "Not Initiated"
+                },
+                {
+                  "name": "Initiated",
+                  "value": "Initiated"
+                },
+                {
+                  "name": "Answered",
+                  "value": "Answered"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                },
+                {
+                  "name": "Failed",
+                  "value": "Failed"
+                },
+                {
+                  "name": "No Answer",
+                  "value": "No Answer"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Vorgangsnummer",
+              "displayName": "Vorgangsnummer",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID Number",
+              "displayName": "ID Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Selbstauskunft Submitted",
+              "displayName": "Selbstauskunft Submitted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Folder URL",
+              "displayName": "Documents Folder URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Documents Complete",
+              "displayName": "Documents Complete",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Calendly Booking",
+              "displayName": "Calendly Booking",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "bfc8dd6a-2cbf-4c0b-b15a-fd01957677a6",
+      "name": "Update record1",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        -32
+      ],
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "Q4E2GVpHjyxqL1oI",
+          "name": "Airtable Demo Test OAuth2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer Details:\nName - {{ $json.fields['First Name'] }}\nNationality - {{ $json.fields.Nationality }}\nAge - {{ $json.fields.Age }}\nMarital Status - {{ $json.fields['Marital Status'] }}\nNumber of Children - {{ $json.fields['Number of Children'] }}\nNet Salary - {{ $json.fields['Net Salary'] }}\nBudget - {{ $json.fields['Budget'] }}\nTimeline - {{ $json.fields.Timeline }}\nMortgage Status - {{ $json.fields['Mortgage Status'] }}\nProperty Type - {{ $json.fields['Property Type'] }}\nPreferred Areas - {{ $json.fields['Preferred Areas'] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Vous êtes un assistant utile qui envoie un SMS amical pour confirmer que les informations d'achat immobilier d'un client ont été enregistrées.\n\nInstructions:\n- Utilisez un ton chaleureux et professionnel adapté aux SMS.\n- Gardez le message court et conversationnel – idéalement moins de 320 caractères.\n- Incluez le prénom du client.\n- Confirmez que ses informations ont été enregistrées.\n- Résumez naturellement les détails clés: budget, calendrier, situation hypothécaire, type de propriété et zones préférées.\n- Pas besoin d'étiqueter chaque détail – intégrez-les dans une phrase amicale.\n\nGénérez maintenant un SMS unique confirmant l'enregistrement, en français.\n\nExemple:\nBonjour Alex! Vos informations sont bien enregistrées – maison individuelle à Strasbourg, budget 500k€, projet d'achat rapide avec besoin d'un crédit. Nous revenons vers vous avec les meilleures options!"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "1ad547ed-ac91-4aa8-b354-45175f2c6db1",
+      "name": "Basic LLM Chain1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -608,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "9664eeb3-10af-486e-b9e5-7e5309b41adc",
+      "name": "OpenAI Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        208
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "3jDEORaDQgY0e79T",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+12176948447",
+        "to": "={{ $('Update record1').item.json.fields['Phone'] }}",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "id": "e58cf3b5-b995-4d89-bbb6-8957f735868d",
+      "name": "Send a text message1",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -32
+      ],
+      "credentials": {
+        "twilioApi": {
+          "id": "HwSM8Pyd4IvbCes6",
+          "name": "Twilio Test Demo 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If Opt-In",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Opt-In": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "11 Labs Calling Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11 Labs Calling Agent": {
+      "main": [
+        [
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Format Response",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Format Response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Update record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update record1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "40056f38-8685-47ea-968b-990bf9a79a17",
+  "meta": {
+    "instanceId": "ba6f9edb57102715831ce6e6dfce9425be2f2b57569b52adf33f4b6dc95e192d"
+  },
+  "id": "0pmVB4ONklkXJIP0",
+  "tags": []
+}
