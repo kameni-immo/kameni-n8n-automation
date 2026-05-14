@@ -1,0 +1,15 @@
+{
+  "event": "message",
+  "session": "default",
+  "payload": {
+    "id": "false_4915123456789@c.us_TESTMESSAGE123",
+    "from": "4915123456789@c.us",
+    "to": "4915011122233@c.us",
+    "body": "Bonjour, je cherche un appartement à Munich.",
+    "fromMe": false,
+    "hasMedia": false,
+    "_data": {
+      "notifyName": "Maria Becker"
+    }
+  }
+}

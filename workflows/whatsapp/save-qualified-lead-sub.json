@@ -29,7 +29,7 @@
           "__rl": true,
           "value": "tblbtkyGl7pSOpClC",
           "mode": "list",
-          "cachedResultName": "customers",
+          "cachedResultName": "customers_dev",
           "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
         },
         "filterByFormula": "={Phone} = '{{ $json.phone }}'",
@@ -103,7 +103,7 @@
           "__rl": true,
           "value": "tblbtkyGl7pSOpClC",
           "mode": "list",
-          "cachedResultName": "customers",
+          "cachedResultName": "customers_dev",
           "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
         },
         "columns": {
@@ -116,7 +116,6 @@
             "First Name": "={{ $('When Executed by Another Workflow').item.json.firstName }}",
             "Phone": "={{ $('When Executed by Another Workflow').item.json.phone }}",
             "Environment": "dev",
-            "Source": "WhatsApp",
             "Pipeline Stage": "Awaiting Documents",
             "Nationality": "={{ $('When Executed by Another Workflow').item.json.nationality }}",
             "Age": "={{ $('When Executed by Another Workflow').item.json.age }}",
@@ -129,12 +128,23 @@
             "Property Type": "={{ $('When Executed by Another Workflow').item.json.propertyType }}",
             "Preferred Areas": "={{ $('When Executed by Another Workflow').item.json.preferredAreas }}",
             "Name": "={{ $('When Executed by Another Workflow').item.json.fullName }}",
-            "Email": "={{ $('When Executed by Another Workflow').item.json.email }}"
+            "Email": "={{ $('When Executed by Another Workflow').item.json.email }}",
+            "Last Contact Channel": "WhatsApp"
           },
           "matchingColumns": [
             "Phone"
           ],
           "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
             {
               "id": "Name",
               "displayName": "Name",
@@ -259,8 +269,37 @@
               "removed": false
             },
             {
-              "id": "Source",
-              "displayName": "Source",
+              "id": "Original Source",
+              "displayName": "Original Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Form",
+                  "value": "Form"
+                },
+                {
+                  "name": "Inbound Call",
+                  "value": "Inbound Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Outbound",
+                  "value": "Outbound"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Contact Channel",
+              "displayName": "Last Contact Channel",
               "required": false,
               "defaultMatch": false,
               "canBeUsedToMatch": true,
@@ -713,7 +752,7 @@
           "__rl": true,
           "value": "tblbtkyGl7pSOpClC",
           "mode": "list",
-          "cachedResultName": "customers",
+          "cachedResultName": "customers_dev",
           "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
         },
         "columns": {
@@ -727,7 +766,6 @@
             "First Name": "={{ $('When Executed by Another Workflow').item.json.firstName }}",
             "Phone": "={{ $('When Executed by Another Workflow').item.json.phone }}",
             "Environment": "dev",
-            "Source": "WhatsApp",
             "Pipeline Stage": "Awaiting Documents",
             "Nationality": "={{ $('When Executed by Another Workflow').item.json.nationality }}",
             "Age": "={{ $('When Executed by Another Workflow').item.json.age }}",
@@ -739,7 +777,9 @@
             "Mortgage Status": "={{ $('When Executed by Another Workflow').item.json.mortgageStatus }}",
             "Property Type": "={{ $('When Executed by Another Workflow').item.json.propertyType }}",
             "Preferred Areas": "={{ $('When Executed by Another Workflow').item.json.preferredAreas }}",
-            "Email": "={{ $('When Executed by Another Workflow').item.json.email }}"
+            "Email": "={{ $('When Executed by Another Workflow').item.json.email }}",
+            "Original Source": "WhatsApp",
+            "Last Contact Channel": "WhatsApp"
           },
           "matchingColumns": [],
           "schema": [
@@ -867,8 +907,37 @@
               "removed": false
             },
             {
-              "id": "Source",
-              "displayName": "Source",
+              "id": "Original Source",
+              "displayName": "Original Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Form",
+                  "value": "Form"
+                },
+                {
+                  "name": "Inbound Call",
+                  "value": "Inbound Call"
+                },
+                {
+                  "name": "WhatsApp",
+                  "value": "WhatsApp"
+                },
+                {
+                  "name": "Outbound",
+                  "value": "Outbound"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last Contact Channel",
+              "displayName": "Last Contact Channel",
               "required": false,
               "defaultMatch": false,
               "canBeUsedToMatch": true,
@@ -1379,15 +1448,22 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "a8b41dd2-b63a-4e2a-a386-8f439afcf8a8",
+  "versionId": "1dfb63c5-447c-498f-8f4e-15ff59a73ebc",
   "meta": {
     "instanceId": "ba6f9edb57102715831ce6e6dfce9425be2f2b57569b52adf33f4b6dc95e192d"
   },
   "id": "mqJcNmPVa9fB56hYD7Kcg",
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-14T16:50:11.415Z",
+      "createdAt": "2026-05-14T16:50:11.415Z",
+      "id": "ulb6kreE4SO3F1AV",
+      "name": "DEV"
+    }
+  ]
 }

@@ -1,0 +1,71 @@
+{
+  "data": {
+    "conversation_id": "conv_test_123456",
+    "transcript": [
+      {
+        "role": "agent",
+        "message": "Hello Maria, thank you for your interest. What is your nationality?"
+      },
+      {
+        "role": "user",
+        "message": "I am German."
+      },
+      {
+        "role": "agent",
+        "message": "How old are you?"
+      },
+      {
+        "role": "user",
+        "message": "I am 35 years old."
+      },
+      {
+        "role": "agent",
+        "message": "Are you married, single, divorced, or widowed?"
+      },
+      {
+        "role": "user",
+        "message": "I am married and we have two children."
+      },
+      {
+        "role": "agent",
+        "message": "What is your monthly net salary?"
+      },
+      {
+        "role": "user",
+        "message": "Around 3200 euros net per month."
+      },
+      {
+        "role": "agent",
+        "message": "What is your property budget?"
+      },
+      {
+        "role": "user",
+        "message": "Around 280000 euros."
+      },
+      {
+        "role": "agent",
+        "message": "When would you like to buy?"
+      },
+      {
+        "role": "user",
+        "message": "Within six to twelve months."
+      },
+      {
+        "role": "agent",
+        "message": "Do you already have mortgage approval?"
+      },
+      {
+        "role": "user",
+        "message": "No, I need help with the mortgage."
+      },
+      {
+        "role": "agent",
+        "message": "What type of property are you looking for and where?"
+      },
+      {
+        "role": "user",
+        "message": "An apartment in Frankfurt or Offenbach."
+      }
+    ]
+  }
+}
