@@ -41,6 +41,11 @@ Important:
 
 ## Airtable
 
+Important:
+- Current setup: DEV and PROD share the same Airtable base.
+- Environment separation currently happens through different tables inside that base.
+- In the future, DEV and PROD may be split into separate Airtable bases.
+
 ### DEV Airtable
 
 | Purpose | Name | ID |
