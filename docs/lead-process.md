@@ -14,16 +14,38 @@ It is written for:
 
 The goal of this automation project is to collect financing leads, qualify them, save them in Airtable, and move qualified customers to the next financing step.
 
-Simple overview:
+High-Level System Flow:
 
-```text
-Customer contact
-→ collect basic information
-→ qualify lead
-→ save/update Airtable
-→ request documents / Selbstauskunft
-→ book appointment
-→ continue financing process
+```mermaid
+flowchart LR
+    classDef entry    fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef storage  fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef followup fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
+
+    subgraph IN ["  Lead Entry  "]
+        WA(["WhatsApp<br/>Message"]):::entry
+        PH(["Form +<br/>Phone Call"]):::entry
+    end
+
+    subgraph QUAL ["  AI Qualification  "]
+        AI["Conversational AI<br/>collects all lead fields<br/>one question at a time"]:::ai
+    end
+
+    subgraph DB ["  Airtable  "]
+        AT[("customers_dev<br/>customers_prod")]:::storage
+    end
+
+    subgraph NEXT ["  Follow-Up Steps  "]
+        DOC["Request<br/>Documents"]:::followup
+        APT["Book<br/>Appointment"]:::followup
+        FIN["Financing<br/>Process"]:::followup
+    end
+
+    WA --> AI
+    PH --> AI
+    AI --> AT
+    AT --> DOC --> APT --> FIN
 ```
 
 ---
@@ -218,20 +240,45 @@ Lost                = lead will not continue
 
 ## 7. WhatsApp process
 
-Simple WhatsApp flow:
+Simplified WhatsApp Flow:
 
 ```mermaid
 flowchart LR
-    WH(["Webhook"]) --> DA["Data"]
-    DA --> IG{"Ignore own msg / group?"}
-    IG -->|"true - stop"| STOP1(["End"])
-    IG -->|"false"| SC["Search by Phone<br/>Airtable"]
-    SC --> AI["AI Agent<br/>ask one missing field"]
-    AI --> PAR["Parse AI JSON / Lead Data"]
-    PAR --> ILC{"IF Lead Complete?"}
-    ILC -->|"false"| SWN(["Send next question<br/>WhatsApp"])
-    ILC -->|"true"| SUB["Save Qualified Lead - Sub"]
-    SUB --> SWF(["Send final reply<br/>WhatsApp"])
+    classDef trigger  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef process  fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef decision fill:#FB8C00,color:#fff,stroke:#E65100,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef save     fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef send     fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
+    classDef stop     fill:#E53935,color:#fff,stroke:#B71C1C,stroke-width:2px
+
+    subgraph INTAKE ["  Intake  "]
+        WH(["WhatsApp<br/>Webhook"]):::trigger
+        DA["Extract<br/>Message Data"]:::process
+        IG{"Own msg<br/>or group?"}:::decision
+    end
+
+    subgraph QUALIFY ["  Qualification  "]
+        SC["Search Customer<br/>in Airtable"]:::process
+        AI["AI Agent<br/>ask one missing field"]:::ai
+        PAR["Parse AI<br/>JSON Response"]:::process
+        ILC{"Lead<br/>Complete?"}:::decision
+    end
+
+    subgraph CLOSE ["  Save & Reply  "]
+        SUB["Save Qualified<br/>Lead to Airtable"]:::save
+        SWF(["Send Final<br/>Confirmation"]):::send
+    end
+
+    STOP(["Stop"]):::stop
+    SWN(["Send Next<br/>Question"]):::send
+
+    WH --> DA --> IG
+    IG -->|"Yes – ignore"| STOP
+    IG -->|"No – continue"| SC
+    SC --> AI --> PAR --> ILC
+    ILC -->|"No"| SWN
+    ILC -->|"Yes"| SUB --> SWF
 ```
 
 Detailed explanation:
@@ -250,21 +297,41 @@ prompts/whatsapp-agent.md
 
 ## 8. Phone-call process
 
-Simple phone flow:
+Simplified Phone Flow:
 
 ```mermaid
 flowchart LR
-    FM(["On form submission"]) --> OPT{"If Opt-In?"}
-    OPT -->|"No - stop"| STOP2(["End"])
-    OPT -->|"Yes"| LLM["Basic LLM Chain<br/>clean phone + extract first name"]
-    LLM --> CRE["Create Airtable row"]
-    CRE --> SMS["Send pre-call SMS<br/>via Twilio"]
-    SMS --> EL["11 Labs Calling Agent<br/>ElevenLabs outbound call"]
-    EL --> UPD["Save Call IDs<br/>Update record"]
+    classDef trigger  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef process  fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef decision fill:#FB8C00,color:#fff,stroke:#E65100,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef save     fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef send     fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
+    classDef stop     fill:#E53935,color:#fff,stroke:#B71C1C,stroke-width:2px
 
-    WH2(["Webhook<br/>transcript"]) --> FR["Format Response<br/>extract structured data"]
-    FR --> UPD1["Update Airtable row<br/>via Conversation ID"]
-    UPD1 --> SMS1(["Send confirmation SMS<br/>via Twilio"])
+    subgraph PART1 ["  Part 1 – Form to AI Call  "]
+        FM(["Form<br/>Submission"]):::trigger
+        OPT{"Opt-In<br/>Given?"}:::decision
+        LLM["AI: Clean Phone<br/>+ Extract Name"]:::ai
+        CRE["Create Airtable<br/>Record"]:::save
+        SMS["Pre-call SMS<br/>via Twilio"]:::send
+        EL["ElevenLabs<br/>Outbound Call"]:::process
+        UPD["Save Call IDs<br/>to Airtable"]:::save
+    end
+
+    subgraph PART2 ["  Part 2 – Transcript to SMS  "]
+        WH2(["Transcript<br/>Webhook"]):::trigger
+        FR["AI: Extract<br/>Structured Data"]:::ai
+        UPD1["Update Airtable<br/>Record"]:::save
+        SMS1(["Send Confirmation<br/>SMS"]):::send
+    end
+
+    STOP(["Stop"]):::stop
+
+    FM --> OPT
+    OPT -->|"No – stop"| STOP
+    OPT -->|"Yes"| LLM --> CRE --> SMS --> EL --> UPD
+    WH2 --> FR --> UPD1 --> SMS1
 ```
 
 Detailed explanation:
