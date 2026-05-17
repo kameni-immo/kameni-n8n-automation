@@ -130,6 +130,26 @@ When connected to external systems:
 - `docs/whatsapp-flow.md` — WhatsApp workflow explanation
 - `prompts/` — backup of AI system prompts used inside n8n nodes
 
+## Documentation Sync Rules
+
+Whenever a change is made, update the relevant `.md` file(s) **in the same task** before finishing. Do not leave docs out of sync.
+
+| What changed | Update this file |
+|---|---|
+| WhatsApp workflow logic or node order | `docs/whatsapp-flow.md` |
+| Phone workflow logic or node order | `docs/phone-call-flow.md` |
+| Overall lead process or channel routing | `docs/lead-process.md` |
+| Any AI prompt inside an n8n node | Matching file in `prompts/` |
+| Airtable field added, renamed, deleted, or option changed | `docs/airtable-fields.md` |
+| New n8n workflow created or deleted | `docs/system-ids.md` |
+| New Airtable base or table created | `docs/system-ids.md` |
+| New ElevenLabs agent created | `docs/system-ids.md` |
+| New folder or file convention introduced | `CLAUDE.md` and `AGENTS.md` |
+| New external system or MCP integration added | `CLAUDE.md`, `AGENTS.md`, and `docs/lead-process.md` |
+| README project description changes | `README.md` |
+
+After completing any change, identify which rows apply, open the listed files, and update only the affected parts. Note in your response which docs were updated.
+
 ## Communication Style
 
 When responding to the user:

@@ -205,6 +205,35 @@ README.md         project overview
 - `docs/whatsapp-flow.md` — numbered step-by-step breakdown of the WhatsApp workflow
 - `prompts/` — backup of all AI system prompts used in n8n nodes; headers indicate which node and workflow each belongs to
 
+## Documentation Sync Rules
+
+Whenever a change is made to any part of this project, update the corresponding `.md` file(s) **in the same task** before finishing. Do not leave docs out of sync.
+
+| What changed | Update this file |
+|---|---|
+| WhatsApp workflow logic or node order | `docs/whatsapp-flow.md` |
+| Phone workflow logic or node order | `docs/phone-call-flow.md` |
+| Overall lead process or channel routing | `docs/lead-process.md` |
+| Any AI prompt inside an n8n node | Matching file in `prompts/` |
+| Airtable field added, renamed, deleted, or option changed | `docs/airtable-fields.md` |
+| New n8n workflow created or deleted | `docs/system-ids.md` |
+| New Airtable base or table created | `docs/system-ids.md` |
+| New ElevenLabs agent created | `docs/system-ids.md` |
+| New folder or file convention introduced | `CLAUDE.md` and `AGENTS.md` (File and Folder Conventions section) |
+| New external system or MCP integration added | `CLAUDE.md`, `AGENTS.md`, and `docs/lead-process.md` as applicable |
+| README project description changes | `README.md` |
+
+### How to apply this rule
+
+After completing any change:
+
+1. Identify which row(s) in the table above apply.
+2. Open the listed file(s).
+3. Update only the parts that reflect the change — do not rewrite the whole file.
+4. Briefly note in your response which docs were updated and what changed in them.
+
+If a change spans multiple areas (e.g., a new Airtable field that is also referenced in a prompt and a workflow), update all affected files.
+
 ## Working Style
 
 Work in small steps.
@@ -216,6 +245,7 @@ When changing workflows, explain briefly:
 - what changed
 - why it changed
 - which DEV workflow/file was affected
+- what docs were updated to reflect the change
 - what should be tested next
 
 Do not make broad changes across many workflows unless the user asks for it.
