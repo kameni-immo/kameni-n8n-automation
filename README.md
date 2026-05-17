@@ -92,16 +92,21 @@ This is not a classical software project with app source code. It is a **no-code
 
 The project follows this simple operating model:
 
-```text
-Customer message or call
-        ↓
-n8n workflow
-        ↓
-AI qualification / data extraction
-        ↓
-Airtable customer record
-        ↓
-Team follow-up / documents / financing process
+```mermaid
+flowchart LR
+    classDef entry   fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef n8n     fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef ai      fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef db      fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef team    fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
+
+    A(["Customer<br/>Message or Call"]):::entry
+    B["n8n<br/>Workflow"]:::n8n
+    C["AI Qualification<br/>/ Data Extraction"]:::ai
+    D[("Airtable<br/>Customer Record")]:::db
+    E["Team Follow-Up<br/>/ Financing Process"]:::team
+
+    A --> B --> C --> D --> E
 ```
 
 GitHub is used as the version history and backup for the exported workflows and documentation.
@@ -213,49 +218,42 @@ It must never contain:
 ## High-Level System Flow
 
 ```mermaid
-flowchart TD
-    Customer[Customer / Lead]
+flowchart LR
+    classDef customer  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef workflow  fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef ai        fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef storage   fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef followup  fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
 
-    Customer -->|WhatsApp message| WAHA[WAHA / WhatsApp webhook]
-    Customer -->|Phone lead form| PhoneForm[Phone trigger / form submission]
+    subgraph IN ["  Lead Entry  "]
+        WA(["WhatsApp<br/>Message"]):::customer
+        PH(["Phone<br/>Form"]):::customer
+    end
 
-    WAHA --> WApp[WhatsApp Lead Ingestion - DEV]
-    PhoneForm --> PApp[Phone Lead Ingestion - DEV]
+    subgraph N8N ["  n8n Workflows  "]
+        WF["WhatsApp Lead<br/>Ingestion"]:::workflow
+        PHF["Phone Lead<br/>Ingestion"]:::workflow
+    end
 
-    WApp --> WAI[WhatsApp AI Qualification Agent]
-    WApp --> AirtableLookup[Airtable customer lookup]
-    WAI --> WDecision{Lead complete?}
+    subgraph AIL ["  AI Layer  "]
+        WAI["WhatsApp<br/>AI Agent"]:::ai
+        EL["ElevenLabs<br/>Phone Agent"]:::ai
+        EXT["Transcript<br/>Extraction"]:::ai
+    end
 
-    WDecision -->|No| Reply[Send next WhatsApp question]
-    WDecision -->|Yes| SaveSub[Save Qualified Lead Subworkflow - DEV]
+    subgraph DB ["  Airtable  "]
+        AT[("Customer<br/>Database")]:::storage
+    end
 
-    SaveSub --> Upsert{Customer found?}
-    Upsert -->|Yes| UpdateCustomer[Update existing customer]
-    Upsert -->|No| CreateCustomer[Create new customer]
-    UpdateCustomer --> Airtable[(Airtable DEV)]
-    CreateCustomer --> Airtable
+    subgraph FOLLOW ["  Follow-Up  "]
+        DOC["Request<br/>Documents"]:::followup
+        APT["Book<br/>Appointment"]:::followup
+        FIN["Financing<br/>Platform"]:::followup
+    end
 
-    PApp --> PhoneCleanup[AI phone number cleanup]
-    PhoneCleanup --> Airtable
-    PApp --> ElevenLabs[ElevenLabs outbound phone agent]
-    ElevenLabs --> TranscriptWebhook[Transcript webhook]
-    TranscriptWebhook --> TranscriptAI[AI transcript extraction]
-    TranscriptAI --> Airtable
-
-    Airtable --> Team[Financing team review]
-    Team --> Docs[Request self-disclosure / documents]
-    Docs --> Bank[Financing platform / bank process]
-
-    GitHub[(GitHub repository)] --> WApp
-    GitHub --> PApp
-    GitHub --> SaveSub
-
-    Jira[Jira tasks] --> GitHub
-    Claude[Claude Code via MCP] --> GitHub
-    Claude --> WApp
-    Claude --> Airtable
-    Claude --> ElevenLabs
-    Codex[Codex CLI] --> GitHub
+    WA --> WF --> WAI --> AT
+    PH --> PHF --> EL --> EXT --> AT
+    AT --> DOC --> APT --> FIN
 ```
 
 ---
@@ -286,31 +284,36 @@ It should behave like a polite financing assistant:
 ### Simplified WhatsApp Flow
 
 ```mermaid
-flowchart TD
-    A[Incoming WhatsApp message] --> B[Receive WAHA webhook]
-    B --> C[Extract phone, message, name, metadata]
-    C --> D[Search customer in Airtable by phone]
+flowchart LR
+    classDef trigger  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef process  fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef decision fill:#FB8C00,color:#fff,stroke:#E65100,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef save     fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef send     fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
 
-    D --> E{Customer found?}
-    E -->|Yes| F[Load existing customer data]
-    E -->|No| G[Create temporary customer context]
+    subgraph INTAKE ["  Intake  "]
+        A(["Incoming<br/>WhatsApp Message"]):::trigger
+        B["Extract Phone,<br/>Message & Metadata"]:::process
+        C["Search Customer<br/>in Airtable"]:::process
+    end
 
-    F --> H[Build AI context]
-    G --> H
+    subgraph QUALIFY ["  AI Qualification  "]
+        D["Build AI Context<br/>from Airtable Data"]:::process
+        E["WhatsApp AI Agent"]:::ai
+        F{"leadComplete?"}:::decision
+    end
 
-    H --> I[WhatsApp AI agent]
-    I --> J{leadComplete = true?}
+    subgraph SAVE ["  Save & Reply  "]
+        G["Save Qualified Lead<br/>Sub-Workflow"]:::save
+        H["Upsert Airtable<br/>Record"]:::save
+    end
 
-    J -->|No| K[Send next single question]
-    K --> L[Wait for next customer reply]
+    K(["Send Next<br/>Single Question"]):::send
 
-    J -->|Yes| M[Call Save Qualified Lead Subworkflow]
-    M --> N[Search customer by phone]
-    N --> O{Existing customer?}
-    O -->|Yes| P[Update existing Airtable record]
-    O -->|No| Q[Create new Airtable record]
-    P --> R[End]
-    Q --> R[End]
+    A --> B --> C --> D --> E --> F
+    F -->|"No – ask next field"| K
+    F -->|"Yes – save lead"| G --> H
 ```
 
 ### WhatsApp Qualification Fields
@@ -366,21 +369,30 @@ The typical phone process is:
 ### Simplified Phone Flow
 
 ```mermaid
-flowchart TD
-    A[Phone lead form submitted] --> B[Phone Lead Ingestion - DEV]
-    B --> C[AI phone contact cleanup]
-    C --> D[Normalize phone number]
-    D --> E[Create or update Airtable customer]
-    E --> F[Send pre-call SMS]
-    F --> G[Start ElevenLabs outbound call]
+flowchart LR
+    classDef trigger  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef process  fill:#546E7A,color:#fff,stroke:#37474F,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef save     fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef send     fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
 
-    G --> H[Customer speaks with AI phone agent]
-    H --> I[ElevenLabs transcript webhook]
-    I --> J[AI transcript extraction]
-    J --> K[Structured JSON output]
-    K --> L[Update Airtable customer record]
-    L --> M[Send confirmation SMS]
-    M --> N[Team review]
+    subgraph PART1 ["  Part 1 – Form to Call  "]
+        A(["Phone Form<br/>Submitted"]):::trigger
+        B["AI: Clean Phone<br/>+ Normalize"]:::ai
+        C["Create Airtable<br/>Record"]:::save
+        D["Send Pre-call<br/>SMS"]:::send
+        E["ElevenLabs<br/>Outbound Call"]:::process
+    end
+
+    subgraph PART2 ["  Part 2 – Transcript to Airtable  "]
+        F(["ElevenLabs<br/>Transcript Webhook"]):::trigger
+        G["AI: Extract<br/>Structured Data"]:::ai
+        H["Update Airtable<br/>Record"]:::save
+        I(["Send Confirmation<br/>SMS"]):::send
+    end
+
+    A --> B --> C --> D --> E
+    F --> G --> H --> I
 ```
 
 ### Phone Agent Data Collection
