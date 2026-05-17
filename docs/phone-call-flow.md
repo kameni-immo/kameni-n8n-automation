@@ -49,37 +49,49 @@ Part 2 = ElevenLabs transcript webhook → Airtable update → SMS confirmation
 
 ---
 
-## 3. Simple visual overview
+## 3. Workflow diagrams
 
-```text
-Customer submits form
-        ↓
-Check Opt-In
-        ↓
-AI cleans phone number and extracts first name
-        ↓
-Create customer in Airtable
-        ↓
-Send SMS: AI will call soon
-        ↓
-Wait 30 seconds
-        ↓
-ElevenLabs starts outbound call
-        ↓
-Save Call SID + Conversation ID
-        ↓
+### Part 1 – Form submission to outbound call
 
-ElevenLabs sends transcript to webhook
-        ↓
-Respond quickly to webhook
-        ↓
-AI extracts structured answers
-        ↓
-Update customer in Airtable
-        ↓
-Generate confirmation SMS
-        ↓
-Send final SMS to customer
+```mermaid
+flowchart LR
+    FRM(["On form submission"]) --> OPT{"If Opt-In?"}
+    OPT -->|"No - stop"| STOP(["End"])
+    OPT -->|"Yes - continue"| LLM["Basic LLM Chain<br/>clean phone + extract first name"]
+    LLM --> CRE["Create a record<br/>Airtable customers_dev"]
+    CRE --> SMS["Send a text message<br/>pre-call SMS via Twilio"]
+    SMS --> WT["Wait 30s"]
+    WT --> EL["11 Labs Calling Agent<br/>ElevenLabs outbound call"]
+    EL --> UPD["Update record<br/>save Conversation ID + Call SID"]
+
+    subgraph ai1 ["LLM Chain sub-nodes"]
+        direction LR
+        OAI["OpenAI Chat Model<br/>gpt-4.1-mini"]
+        SOP["Structured Output Parser"]
+    end
+    OAI -.->|"ai_languageModel"| LLM
+    SOP -.->|"ai_outputParser"| LLM
+```
+
+### Part 2 – Transcript webhook to confirmation SMS
+
+```mermaid
+flowchart LR
+    WH(["Webhook<br/>ElevenLabs transcript"]) --> RW["Respond to Webhook"]
+    RW --> FR["Format Response<br/>extract structured data from transcript"]
+    FR --> UPD1["Update record1<br/>Airtable via Conversation ID"]
+    UPD1 --> LLM1["Basic LLM Chain1<br/>generate confirmation SMS"]
+    LLM1 --> SMS1(["Send a text message1<br/>final SMS to customer"])
+
+    subgraph ai2 ["LLM Chain sub-nodes"]
+        direction LR
+        OAI1["OpenAI Chat Model1<br/>gpt-4.1-mini"]
+        SOP1["Structured Output Parser1"]
+        OAI2["OpenAI Chat Model2<br/>gpt-4.1-mini"]
+    end
+    OAI1 -.->|"ai_languageModel"| FR
+    SOP1 -.->|"ai_outputParser"| FR
+    OAI2 -.->|"ai_languageModel"| LLM1
 ```
 
 ---

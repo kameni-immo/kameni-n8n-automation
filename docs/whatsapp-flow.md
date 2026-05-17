@@ -63,31 +63,34 @@ creates a new Airtable customer
 
 ---
 
-## 3. Simple visual overview
+## 3. Workflow diagram – WhatsApp Agent Main
 
-```text
-Customer sends WhatsApp message
-        ↓
-Webhook receives message
-        ↓
-Ignore own messages and group messages
-        ↓
-Search customer in Airtable by phone
-        ↓
-Build AI context
-        ↓
-AI Agent decides next reply and lead data
-        ↓
-Parse AI JSON
-        ↓
-Is lead complete?
-        ↓
-No  → send next question on WhatsApp
-Yes → call Save Qualified Lead sub-workflow
-        ↓
-Save/update Airtable
-        ↓
-Send final WhatsApp reply
+```mermaid
+flowchart LR
+    WH(["Webhook"]) --> RW["Respond to Webhook"]
+    RW --> DA["Data"]
+    DA --> IG{"Ignore own messages / groups?"}
+    IG -->|"true - stop"| STOP(["End"])
+    IG -->|"false - continue"| SC["Search customer by Phone"]
+    SC --> BAC["Build AI Context from Airtable"]
+    BAC --> AGT["AI Agent"]
+    AGT --> PAR["Parse AI JSON / Lead Data"]
+    PAR --> ILC{"IF Lead Complete?"}
+    ILC -->|"true"| SUB["Save Qualified Lead - Sub"]
+    SUB --> STF["Start Typing - Final Reply"]
+    STF --> WF["Wait 5s - Final Reply"]
+    WF --> SWF(["Send WhatsApp - Final Reply"])
+    ILC -->|"false"| STN["Start Typing - Next Question"]
+    STN --> WN["Wait 5s - Next Question"]
+    WN --> SWN(["Send WhatsApp - Next Question"])
+
+    subgraph agtsub ["AI Agent sub-nodes"]
+        direction LR
+        OAI["OpenAI Chat Model<br/>gpt-4.1-mini"]
+        MEM["Memory<br/>Postgres Chat"]
+    end
+    OAI -.->|"ai_languageModel"| AGT
+    MEM -.->|"ai_memory"| AGT
 ```
 
 ---
@@ -593,6 +596,14 @@ searches Airtable by Phone
 checks if customer exists
 updates existing customer
 or creates new customer
+```
+
+```mermaid
+flowchart LR
+    TRG(["When Executed by Another Workflow"]) --> SC["Search customer by Phone"]
+    SC --> IFC{"IF customer found?"}
+    IFC -->|"true"| UPD["Update existing customer"]
+    IFC -->|"false"| CRE["Create new customer"]
 ```
 
 ---

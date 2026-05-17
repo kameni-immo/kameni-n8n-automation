@@ -220,25 +220,18 @@ Lost                = lead will not continue
 
 Simple WhatsApp flow:
 
-```text
-Customer sends WhatsApp message
-        ↓
-n8n webhook receives it
-        ↓
-Own messages/groups are ignored
-        ↓
-Airtable is searched by phone
-        ↓
-AI receives existing data + missing fields
-        ↓
-AI asks one missing question
-        ↓
-AI returns JSON
-        ↓
-n8n parses and cleans JSON
-        ↓
-If incomplete: next WhatsApp question
-If complete: save/update Airtable
+```mermaid
+flowchart LR
+    WH(["Webhook"]) --> DA["Data"]
+    DA --> IG{"Ignore own msg / group?"}
+    IG -->|"true - stop"| STOP1(["End"])
+    IG -->|"false"| SC["Search by Phone<br/>Airtable"]
+    SC --> AI["AI Agent<br/>ask one missing field"]
+    AI --> PAR["Parse AI JSON / Lead Data"]
+    PAR --> ILC{"IF Lead Complete?"}
+    ILC -->|"false"| SWN(["Send next question<br/>WhatsApp"])
+    ILC -->|"true"| SUB["Save Qualified Lead - Sub"]
+    SUB --> SWF(["Send final reply<br/>WhatsApp"])
 ```
 
 Detailed explanation:
@@ -259,28 +252,19 @@ prompts/whatsapp-agent.md
 
 Simple phone flow:
 
-```text
-Customer submits form
-        ↓
-Opt-in is checked
-        ↓
-Phone number and first name are cleaned
-        ↓
-Customer row is created in Airtable
-        ↓
-SMS informs customer about the call
-        ↓
-ElevenLabs/Twilio starts outbound call
-        ↓
-Call IDs are saved
-        ↓
-Transcript webhook receives call transcript
-        ↓
-AI extracts structured data
-        ↓
-Airtable is updated
-        ↓
-Final confirmation SMS is sent
+```mermaid
+flowchart LR
+    FM(["On form submission"]) --> OPT{"If Opt-In?"}
+    OPT -->|"No - stop"| STOP2(["End"])
+    OPT -->|"Yes"| LLM["Basic LLM Chain<br/>clean phone + extract first name"]
+    LLM --> CRE["Create Airtable row"]
+    CRE --> SMS["Send pre-call SMS<br/>via Twilio"]
+    SMS --> EL["11 Labs Calling Agent<br/>ElevenLabs outbound call"]
+    EL --> UPD["Save Call IDs<br/>Update record"]
+
+    WH2(["Webhook<br/>transcript"]) --> FR["Format Response<br/>extract structured data"]
+    FR --> UPD1["Update Airtable row<br/>via Conversation ID"]
+    UPD1 --> SMS1(["Send confirmation SMS<br/>via Twilio"])
 ```
 
 Detailed explanation:
