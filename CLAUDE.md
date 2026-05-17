@@ -45,6 +45,30 @@ Do not create duplicate workflows, duplicate Airtable tables, or duplicate Eleve
 
 Never store API keys, tokens, passwords, or secrets in repository files.
 
+## Secrets Rule
+
+Never store secrets in this repository.
+
+Do not write or commit:
+
+- API keys
+- access tokens
+- passwords
+- cookies
+- private credentials
+- webhook secrets
+
+IDs such as n8n workflow IDs, Airtable base/table IDs, and ElevenLabs agent IDs may be documented in `docs/system-ids.md` because they are references, not secrets.
+
+## Tool Safety Rules
+
+When connected to external systems:
+
+- Prefer read/list/search before write actions.
+- Do not delete workflows, Airtable records, Jira issues, agents, or files unless explicitly requested.
+- Do not modify PROD resources unless the user explicitly says: "Apply this to PROD".
+- When unsure, explain the intended action before making changes.
+
 ## Architecture
 
 ### Two-Channel Lead Intake
