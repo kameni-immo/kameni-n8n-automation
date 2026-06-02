@@ -120,7 +120,7 @@ GitHub is used as the version history and backup for the exported workflows and 
 | n8n | Main workflow automation platform |
 | Airtable | Central database / CRM for lead and customer data |
 | WhatsApp / WAHA | WhatsApp message intake and replies |
-| ElevenLabs | Phone AI agent and call conversation handling |
+| Telnyx | Phone AI agent and outbound call handling |
 | GitHub | Version control for workflows and documentation |
 | Jira / Atlassian | Task tracking |
 | Claude Code | AI development assistant with MCP tools |
@@ -237,8 +237,8 @@ flowchart LR
 
     subgraph AIL ["  AI Layer  "]
         WAI["WhatsApp<br/>AI Agent"]:::ai
-        EL["ElevenLabs<br/>Phone Agent"]:::ai
-        EXT["Transcript<br/>Extraction"]:::ai
+        EL["Telnyx<br/>Phone Agent"]:::ai
+        EXT["Call Summary<br/>Extraction"]:::ai
     end
 
     subgraph DB ["  Airtable  "]
@@ -351,20 +351,20 @@ The WhatsApp agent may collect information such as:
 
 ### Purpose
 
-The phone flow qualifies leads through a phone conversation using an ElevenLabs AI phone agent.
+The phone flow qualifies leads through a phone conversation using a Telnyx AI phone agent.
 
 The typical phone process is:
 
 1. A lead submits a phone form.
 2. n8n cleans and normalizes the phone number.
-3. n8n creates or updates an Airtable row.
-4. n8n sends a pre-call SMS.
-5. ElevenLabs starts an outbound call.
-6. The AI phone agent asks qualification questions.
-7. ElevenLabs sends the transcript back to n8n.
-8. n8n extracts structured data from the transcript.
-9. n8n updates Airtable.
-10. n8n sends a confirmation SMS.
+3. n8n creates an Airtable row.
+4. n8n sends a pre-call WhatsApp message in French via WAHA.
+5. Telnyx starts an outbound AI call.
+6. The Telnyx AI agent asks 10 qualification questions.
+7. After the call, the Telnyx agent posts a call summary to n8n via webhook.
+8. n8n extracts structured data from the summary.
+9. n8n updates Airtable, matched by Call SID.
+10. n8n sends a confirmation WhatsApp message in French via WAHA.
 
 ### Simplified Phone Flow
 
@@ -380,15 +380,15 @@ flowchart LR
         A(["Phone Form<br/>Submitted"]):::trigger
         B["AI: Clean Phone<br/>+ Normalize"]:::ai
         C["Create Airtable<br/>Record"]:::save
-        D["Send Pre-call<br/>SMS"]:::send
-        E["ElevenLabs<br/>Outbound Call"]:::process
+        D["Send Pre-call<br/>WhatsApp (WAHA)"]:::send
+        E["Telnyx<br/>Outbound Call"]:::process
     end
 
-    subgraph PART2 ["  Part 2 – Transcript to Airtable  "]
-        F(["ElevenLabs<br/>Transcript Webhook"]):::trigger
+    subgraph PART2 ["  Part 2 – Call Summary to Airtable  "]
+        F(["Telnyx<br/>Call Summary Webhook"]):::trigger
         G["AI: Extract<br/>Structured Data"]:::ai
         H["Update Airtable<br/>Record"]:::save
-        I(["Send Confirmation<br/>SMS"]):::send
+        I(["Send Confirmation<br/>WhatsApp (WAHA)"]):::send
     end
 
     A --> B --> C --> D --> E
@@ -494,22 +494,22 @@ sequenceDiagram
     participant N8N as n8n Phone Workflow
     participant AI as AI Cleanup / Extraction
     participant Airtable
-    participant SMS as SMS Provider
-    participant Eleven as ElevenLabs Agent
+    participant WAHA as WAHA / WhatsApp
+    participant Telnyx as Telnyx AI Agent
 
     Lead->>Form: Submits phone lead form
     Form->>N8N: Trigger workflow
     N8N->>AI: Clean and normalize phone data
     AI-->>N8N: Normalized contact JSON
-    N8N->>Airtable: Create or update lead record
-    N8N->>SMS: Send pre-call SMS
-    N8N->>Eleven: Start outbound phone call
-    Eleven->>Lead: Qualification call
-    Eleven-->>N8N: Transcript webhook
+    N8N->>Airtable: Create lead record
+    N8N->>WAHA: Send pre-call WhatsApp message (French)
+    N8N->>Telnyx: Start outbound AI call
+    Telnyx->>Lead: Qualification call (10 questions)
+    Telnyx-->>N8N: Call summary webhook (matched by Call SID)
     N8N->>AI: Extract structured financing data
     AI-->>N8N: Structured JSON
     N8N->>Airtable: Update lead record
-    N8N->>SMS: Send confirmation SMS
+    N8N->>WAHA: Send confirmation WhatsApp message (French)
 ```
 
 ### DEV to PROD Promotion Sequence
@@ -557,7 +557,7 @@ Claude Code may connect to external systems through MCP servers, such as:
 - Airtable
 - GitHub
 - Jira / Atlassian
-- ElevenLabs
+- Telnyx
 
 ### Codex CLI and Other AI Tools
 
@@ -736,7 +736,7 @@ customer@example.com
 | `README.md` | Main project overview |
 | `AGENTS.md` | Shared rules for Codex CLI and other AI tools |
 | `CLAUDE.md` | Claude Code specific rules |
-| `docs/system-ids.md` | DEV and PROD IDs for n8n, Airtable, ElevenLabs |
+| `docs/system-ids.md` | DEV and PROD IDs for n8n, Airtable, and Telnyx |
 | `docs/airtable-fields.md` | Airtable field schema |
 | `docs/lead-process.md` | End-to-end financing process |
 | `docs/whatsapp-flow.md` | WhatsApp workflow explanation |
@@ -758,7 +758,7 @@ customer@example.com
 | Workflow JSON | Exported n8n workflow file |
 | Airtable | CRM / database for customer records |
 | WAHA | WhatsApp API bridge used for incoming and outgoing messages |
-| ElevenLabs | AI voice agent platform |
+| Telnyx | AI phone agent and telephony platform used for outbound qualification calls |
 | MCP | Model Context Protocol, used to connect AI tools to external systems |
 | Upsert | Search existing record first, then update or create |
 | Lead | Potential financing customer |
