@@ -6,31 +6,13 @@
         "formTitle": "Kameni Immobilien Acquisition Form",
         "formFields": {
           "values": [
-            {
-              "fieldLabel": "Customer Name"
-            },
-            {
-              "fieldLabel": "Email",
-              "fieldType": "email",
-              "placeholder": "test@example.com"
-            },
-            {
-              "fieldLabel": "Phone Number",
-              "placeholder": "004917623294582"
-            },
+            { "fieldLabel": "Customer Name" },
+            { "fieldLabel": "Email", "fieldType": "email", "placeholder": "test@example.com" },
+            { "fieldLabel": "Phone Number", "placeholder": "004917623294582" },
             {
               "fieldLabel": "Opt in",
               "fieldType": "dropdown",
-              "fieldOptions": {
-                "values": [
-                  {
-                    "option": "Yes"
-                  },
-                  {
-                    "option": "No"
-                  }
-                ]
-              }
+              "fieldOptions": { "values": [{ "option": "Yes" }, { "option": "No" }] }
             }
           ]
         },
@@ -40,30 +22,19 @@
       "name": "On form submission",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
-      "position": [
-        -1632,
-        -464
-      ],
+      "position": [-1632, -456],
       "webhookId": "79a90c97-37fd-4483-983e-d24c02791ccc-dev"
     },
     {
       "parameters": {
         "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
           "conditions": [
             {
               "id": "ac7991df-9eb6-4ffe-b27d-3b43c0ac91ae",
               "leftValue": "={{ $json['Opt in'] }}",
               "rightValue": "Yes",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
+              "operator": { "type": "string", "operation": "equals" }
             }
           ],
           "combinator": "and"
@@ -74,10 +45,7 @@
       "name": "If Opt-In",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [
-        -1408,
-        -464
-      ]
+      "position": [-1408, -456]
     },
     {
       "parameters": {
@@ -97,18 +65,11 @@
       "name": "Basic LLM Chain",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
-      "position": [
-        -1184,
-        -560
-      ]
+      "position": [-1184, -560]
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4.1-mini"
-        },
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
         "builtInTools": {},
         "options": {}
       },
@@ -116,16 +77,8 @@
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [
-        -1216,
-        -336
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "3jDEORaDQgY0e79T",
-          "name": "OpenAi account 2"
-        }
-      }
+      "position": [-1176, -336],
+      "credentials": { "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" } }
     },
     {
       "parameters": {
@@ -135,28 +88,14 @@
       "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
-      "position": [
-        -1008,
-        -336
-      ]
+      "position": [-1048, -336]
     },
     {
       "parameters": {
         "authentication": "airtableOAuth2Api",
         "operation": "create",
-        "base": {
-          "__rl": true,
-          "value": "appn65GylpcWvByIP",
-          "mode": "list",
-          "cachedResultName": "n8n Demo Test"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblbtkyGl7pSOpClC",
-          "mode": "list",
-          "cachedResultName": "customers_dev",
-          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
-        },
+        "base": { "__rl": true, "value": "appn65GylpcWvByIP", "mode": "list", "cachedResultName": "n8n Demo Test" },
+        "table": { "__rl": true, "value": "tblbtkyGl7pSOpClC", "mode": "list", "cachedResultName": "customers_dev", "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC" },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -167,557 +106,15 @@
             "Opt In": "={{ $('On form submission').item.json['Opt in'] === 'Yes' ? true : false }}",
             "Phone": "={{ $json.output['Customer Phone Number'] }}",
             "Pipeline Stage": "Qualifying",
-            "Source": "Form",
+            "Original Source": "Form",
+            "Last Contact Channel": "Form",
             "Age": 0,
             "Number of Children": 0,
             "Net Salary": 0,
             "Budget": 0
           },
           "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Name",
-              "displayName": "Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Notes",
-              "displayName": "Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Assignee",
-              "displayName": "Assignee",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Todo",
-                  "value": "Todo"
-                },
-                {
-                  "name": "In progress",
-                  "value": "In progress"
-                },
-                {
-                  "name": "Done",
-                  "value": "Done"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Attachments",
-              "displayName": "Attachments",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "array",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "First Name",
-              "displayName": "First Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Email",
-              "displayName": "Email",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Phone",
-              "displayName": "Phone",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Environment",
-              "displayName": "Environment",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "prod",
-                  "value": "prod"
-                },
-                {
-                  "name": "dev",
-                  "value": "dev"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source",
-              "displayName": "Source",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Form",
-                  "value": "Form"
-                },
-                {
-                  "name": "Inbound Call",
-                  "value": "Inbound Call"
-                },
-                {
-                  "name": "WhatsApp",
-                  "value": "WhatsApp"
-                },
-                {
-                  "name": "Outbound",
-                  "value": "Outbound"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Pipeline Stage",
-              "displayName": "Pipeline Stage",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "New",
-                  "value": "New"
-                },
-                {
-                  "name": "Qualifying",
-                  "value": "Qualifying"
-                },
-                {
-                  "name": "Awaiting Documents",
-                  "value": "Awaiting Documents"
-                },
-                {
-                  "name": "Documents Validated",
-                  "value": "Documents Validated"
-                },
-                {
-                  "name": "Booked",
-                  "value": "Booked"
-                },
-                {
-                  "name": "Lost",
-                  "value": "Lost"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Opt In",
-              "displayName": "Opt In",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Qualified Lead",
-              "displayName": "Qualified Lead",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Nationality",
-              "displayName": "Nationality",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Age",
-              "displayName": "Age",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Marital Status",
-              "displayName": "Marital Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Single",
-                  "value": "Single"
-                },
-                {
-                  "name": "Married",
-                  "value": "Married"
-                },
-                {
-                  "name": "Divorced",
-                  "value": "Divorced"
-                },
-                {
-                  "name": "Widowed",
-                  "value": "Widowed"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Number of Children",
-              "displayName": "Number of Children",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Net Salary",
-              "displayName": "Net Salary",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Budget",
-              "displayName": "Budget",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Timeline",
-              "displayName": "Timeline",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "0-3 months",
-                  "value": "0-3 months"
-                },
-                {
-                  "name": "3-6 months",
-                  "value": "3-6 months"
-                },
-                {
-                  "name": "6-12 months",
-                  "value": "6-12 months"
-                },
-                {
-                  "name": "12+ months",
-                  "value": "12+ months"
-                },
-                {
-                  "name": "Just exploring",
-                  "value": "Just exploring"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Mortgage Status",
-              "displayName": "Mortgage Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "No mortgage yet - needs help",
-                  "value": "No mortgage yet - needs help"
-                },
-                {
-                  "name": "Mortgage in principle",
-                  "value": "Mortgage in principle"
-                },
-                {
-                  "name": "Mortgage approved",
-                  "value": "Mortgage approved"
-                },
-                {
-                  "name": "Already has mortgage",
-                  "value": "Already has mortgage"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Property Type",
-              "displayName": "Property Type",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Apartment",
-                  "value": "Apartment"
-                },
-                {
-                  "name": "House",
-                  "value": "House"
-                },
-                {
-                  "name": "Detached house",
-                  "value": "Detached house"
-                },
-                {
-                  "name": "Semi-detached house",
-                  "value": "Semi-detached house"
-                },
-                {
-                  "name": "Plot of land",
-                  "value": "Plot of land"
-                },
-                {
-                  "name": "Commercial",
-                  "value": "Commercial"
-                },
-                {
-                  "name": "Other",
-                  "value": "Other"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Preferred Areas",
-              "displayName": "Preferred Areas",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Conversation ID",
-              "displayName": "Conversation ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call SID",
-              "displayName": "Call SID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call Status",
-              "displayName": "Call Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Not Initiated",
-                  "value": "Not Initiated"
-                },
-                {
-                  "name": "Initiated",
-                  "value": "Initiated"
-                },
-                {
-                  "name": "Answered",
-                  "value": "Answered"
-                },
-                {
-                  "name": "Completed",
-                  "value": "Completed"
-                },
-                {
-                  "name": "Failed",
-                  "value": "Failed"
-                },
-                {
-                  "name": "No Answer",
-                  "value": "No Answer"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Vorgangsnummer",
-              "displayName": "Vorgangsnummer",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "ID Number",
-              "displayName": "ID Number",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Selbstauskunft Submitted",
-              "displayName": "Selbstauskunft Submitted",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Folder URL",
-              "displayName": "Documents Folder URL",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Complete",
-              "displayName": "Documents Complete",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Calendly Booking",
-              "displayName": "Calendly Booking",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
+          "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -727,672 +124,77 @@
       "name": "Create a record",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
-      "position": [
-        -832,
-        -464
-      ],
-      "credentials": {
-        "airtableOAuth2Api": {
-          "id": "Q4E2GVpHjyxqL1oI",
-          "name": "Airtable Demo Test OAuth2"
-        }
-      },
+      "position": [-832, -456],
+      "credentials": { "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" } },
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "from": "+12176948447",
-        "to": "={{ $json.fields['Phone'] }}",
-        "message": "=Hey {{ $json.fields['First Name'] }}, thanks for opting into our qualifying call! Our AI agent will be phoning you from +12176948447 to find out more about your situation. Please accept the call and answer the screening questions.",
-        "options": {}
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $json.fields['Phone'].replace('+', '') + '@c.us' }}",
+        "reply_to": "=",
+        "text": "=Bonjour {{ $('Basic LLM Chain').item.json.output[\"Customer First name\"] }}, merci pour votre inscription à notre appel de qualification ! Notre agent IA vous appellera très prochainement pour en savoir plus sur votre situation. Veuillez accepter l'appel et répondre aux questions de qualification.",
+        "requestOptions": {}
       },
       "id": "206a6ca4-aad1-42c9-a5d9-637af7621934",
       "name": "Send a text message",
-      "type": "n8n-nodes-base.twilio",
-      "typeVersion": 1,
-      "position": [
-        -608,
-        -464
-      ],
-      "credentials": {
-        "twilioApi": {
-          "id": "HwSM8Pyd4IvbCes6",
-          "name": "Twilio Test Demo 2"
-        }
-      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [-608, -456],
+      "credentials": { "wahaApi": { "id": "FkdOyqhhdQ01p2E8", "name": "WAHA account" } },
       "onError": "continueRegularOutput"
     },
     {
-      "parameters": {
-        "amount": 30
-      },
+      "parameters": { "amount": 30 },
       "id": "a50f75d0-542a-4988-bdfd-ac9f0ecdb8c6",
       "name": "Wait",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [
-        -384,
-        -464
-      ],
+      "position": [-384, -456],
       "webhookId": "f946b789-c93d-4cf4-8de8-903f7f173ada-dev"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.elevenlabs.io/v1/convai/twilio/outbound-call",
+        "url": "https://api.telnyx.com/v2/texml/ai_calls/2972510149958174164",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "xi-api-key",
-              "value": "sk_153f0380339e4e0b155fcdb0f637f1ef03dc65ddddef9ea0"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
+            { "name": "Content-Type", "value": "application/json" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n    \"agent_id\": \"agent_0801khgdz2jeek0r874z6zcw875g\",\n    \"agent_phone_number_id\": \"phnum_0501khnp015he458kqrem15j2m39\",\n    \"to_number\": \"{{ $('Create a record').item.json.fields['Phone'] }}\"\n  }",
+        "jsonBody": "={\n  \"From\": \"+12018841021\",\n  \"To\": \"{{ $('Create a record').item.json.fields['Phone'] }}\",\n  \"AIAssistantId\": \"assistant-3896d294-b584-483f-806f-09de4c94c8ca\",\n  \"dynamic_variables\": {\n    \"customer_phone\": \"{{ $('Create a record').item.json.fields['Phone'] }}\"\n  }\n}",
         "options": {}
       },
       "id": "d5770bbe-62f7-47e4-a677-dafecef6e141",
-      "name": "11 Labs Calling Agent",
+      "name": "Telnyx Calling Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
-      "position": [
-        -160,
-        -464
-      ],
-      "onError": "continueRegularOutput"
+      "position": [-160, -456],
+      "onError": "continueRegularOutput",
+      "credentials": { "httpHeaderAuth": { "id": "oT7mvOYgHjm2e6xy", "name": "Telnyx API Key" } }
     },
     {
       "parameters": {
         "authentication": "airtableOAuth2Api",
         "operation": "update",
-        "base": {
-          "__rl": true,
-          "value": "appn65GylpcWvByIP",
-          "mode": "list",
-          "cachedResultName": "n8n Demo Test"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblbtkyGl7pSOpClC",
-          "mode": "list",
-          "cachedResultName": "customers_dev",
-          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
-        },
+        "base": { "__rl": true, "value": "appn65GylpcWvByIP", "mode": "list", "cachedResultName": "n8n Demo Test" },
+        "table": { "__rl": true, "value": "tblbtkyGl7pSOpClC", "mode": "list", "cachedResultName": "customers_dev", "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC" },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Call SID": "={{ $json.callSid }}",
+            "Call SID": "={{ $json.call_sid ?? $json.Sid ?? $json.SID ?? '' }}",
             "Call Status": "Initiated",
-            "Conversation ID": "={{ $json.conversation_id }}",
-            "id": "={{ $('Create a record').item.json.id }}",
-            "Age": 0,
-            "Number of Children": 0,
-            "Net Salary": 0,
-            "Budget": 0
+            "id": "={{ $('Create a record').item.json.id }}"
           },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": true
-            },
-            {
-              "id": "Name",
-              "displayName": "Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Notes",
-              "displayName": "Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Assignee",
-              "displayName": "Assignee",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Todo",
-                  "value": "Todo"
-                },
-                {
-                  "name": "In progress",
-                  "value": "In progress"
-                },
-                {
-                  "name": "Done",
-                  "value": "Done"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Attachments",
-              "displayName": "Attachments",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "array",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "First Name",
-              "displayName": "First Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Email",
-              "displayName": "Email",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Phone",
-              "displayName": "Phone",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Environment",
-              "displayName": "Environment",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "prod",
-                  "value": "prod"
-                },
-                {
-                  "name": "dev",
-                  "value": "dev"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source",
-              "displayName": "Source",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Form",
-                  "value": "Form"
-                },
-                {
-                  "name": "Inbound Call",
-                  "value": "Inbound Call"
-                },
-                {
-                  "name": "WhatsApp",
-                  "value": "WhatsApp"
-                },
-                {
-                  "name": "Outbound",
-                  "value": "Outbound"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Pipeline Stage",
-              "displayName": "Pipeline Stage",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "New",
-                  "value": "New"
-                },
-                {
-                  "name": "Qualifying",
-                  "value": "Qualifying"
-                },
-                {
-                  "name": "Awaiting Documents",
-                  "value": "Awaiting Documents"
-                },
-                {
-                  "name": "Documents Validated",
-                  "value": "Documents Validated"
-                },
-                {
-                  "name": "Booked",
-                  "value": "Booked"
-                },
-                {
-                  "name": "Lost",
-                  "value": "Lost"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Opt In",
-              "displayName": "Opt In",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Qualified Lead",
-              "displayName": "Qualified Lead",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Nationality",
-              "displayName": "Nationality",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Age",
-              "displayName": "Age",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Marital Status",
-              "displayName": "Marital Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Single",
-                  "value": "Single"
-                },
-                {
-                  "name": "Married",
-                  "value": "Married"
-                },
-                {
-                  "name": "Divorced",
-                  "value": "Divorced"
-                },
-                {
-                  "name": "Widowed",
-                  "value": "Widowed"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Number of Children",
-              "displayName": "Number of Children",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Net Salary",
-              "displayName": "Net Salary",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Budget",
-              "displayName": "Budget",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Timeline",
-              "displayName": "Timeline",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "0-3 months",
-                  "value": "0-3 months"
-                },
-                {
-                  "name": "3-6 months",
-                  "value": "3-6 months"
-                },
-                {
-                  "name": "6-12 months",
-                  "value": "6-12 months"
-                },
-                {
-                  "name": "12+ months",
-                  "value": "12+ months"
-                },
-                {
-                  "name": "Just exploring",
-                  "value": "Just exploring"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Mortgage Status",
-              "displayName": "Mortgage Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "No mortgage yet - needs help",
-                  "value": "No mortgage yet - needs help"
-                },
-                {
-                  "name": "Mortgage in principle",
-                  "value": "Mortgage in principle"
-                },
-                {
-                  "name": "Mortgage approved",
-                  "value": "Mortgage approved"
-                },
-                {
-                  "name": "Already has mortgage",
-                  "value": "Already has mortgage"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Property Type",
-              "displayName": "Property Type",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Apartment",
-                  "value": "Apartment"
-                },
-                {
-                  "name": "House",
-                  "value": "House"
-                },
-                {
-                  "name": "Detached house",
-                  "value": "Detached house"
-                },
-                {
-                  "name": "Semi-detached house",
-                  "value": "Semi-detached house"
-                },
-                {
-                  "name": "Plot of land",
-                  "value": "Plot of land"
-                },
-                {
-                  "name": "Commercial",
-                  "value": "Commercial"
-                },
-                {
-                  "name": "Other",
-                  "value": "Other"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Preferred Areas",
-              "displayName": "Preferred Areas",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Conversation ID",
-              "displayName": "Conversation ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call SID",
-              "displayName": "Call SID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call Status",
-              "displayName": "Call Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Not Initiated",
-                  "value": "Not Initiated"
-                },
-                {
-                  "name": "Initiated",
-                  "value": "Initiated"
-                },
-                {
-                  "name": "Answered",
-                  "value": "Answered"
-                },
-                {
-                  "name": "Completed",
-                  "value": "Completed"
-                },
-                {
-                  "name": "Failed",
-                  "value": "Failed"
-                },
-                {
-                  "name": "No Answer",
-                  "value": "No Answer"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Vorgangsnummer",
-              "displayName": "Vorgangsnummer",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "ID Number",
-              "displayName": "ID Number",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Selbstauskunft Submitted",
-              "displayName": "Selbstauskunft Submitted",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Folder URL",
-              "displayName": "Documents Folder URL",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Complete",
-              "displayName": "Documents Complete",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Calendly Booking",
-              "displayName": "Calendly Booking",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
+          "matchingColumns": ["id"],
+          "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -1402,16 +204,8 @@
       "name": "Update record",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
-      "position": [
-        64,
-        -464
-      ],
-      "credentials": {
-        "airtableOAuth2Api": {
-          "id": "Q4E2GVpHjyxqL1oI",
-          "name": "Airtable Demo Test OAuth2"
-        }
-      },
+      "position": [64, -456],
+      "credentials": { "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" } },
       "onError": "continueRegularOutput"
     },
     {
@@ -1425,10 +219,7 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -1632,
-        -16
-      ],
+      "position": [-1632, -24],
       "webhookId": "0a45c953-a3a2-4074-8df8-c37d416836bb-dev",
       "onError": "continueRegularOutput"
     },
@@ -1442,10 +233,7 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        -1408,
-        -32
-      ]
+      "position": [-1408, -24]
     },
     {
       "parameters": {
@@ -1455,18 +243,11 @@
       "name": "Structured Output Parser1",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
-      "position": [
-        -1056,
-        208
-      ]
+      "position": [-1048, 200]
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4.1-mini"
-        },
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
         "builtInTools": {},
         "options": {}
       },
@@ -1474,21 +255,13 @@
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [
-        -1200,
-        208
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "3jDEORaDQgY0e79T",
-          "name": "OpenAi account 2"
-        }
-      }
+      "position": [-1176, 200],
+      "credentials": { "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" } }
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Transcript Summary: {{ $json.body.data.transcript.map(t => t.role + \": \" + t.message).join(\"\\n\")  }}",
+        "text": "=Call Summary: {{ $json.body.call_summary }}",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -1503,35 +276,21 @@
       "name": "Format Response",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
-      "position": [
-        -1184,
-        -32
-      ]
+      "position": [-1184, -24]
     },
     {
       "parameters": {
         "authentication": "airtableOAuth2Api",
         "operation": "update",
-        "base": {
-          "__rl": true,
-          "value": "appn65GylpcWvByIP",
-          "mode": "list",
-          "cachedResultName": "n8n Demo Test"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblbtkyGl7pSOpClC",
-          "mode": "list",
-          "cachedResultName": "customers_dev",
-          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
-        },
+        "base": { "__rl": true, "value": "appn65GylpcWvByIP", "mode": "list", "cachedResultName": "n8n Demo Test" },
+        "table": { "__rl": true, "value": "tblbtkyGl7pSOpClC", "mode": "list", "cachedResultName": "customers_dev", "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC" },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
+            "Call SID": "={{ $('Webhook').item.json.headers['x-telnyx-call-control-id'] }}",
             "Age": "={{ $json.output.age }}",
             "Budget": "={{ $json.output.budgetRange }}",
             "Call Status": "Completed",
-            "Conversation ID": "={{ $('Webhook').item.json.body.data.conversation_id }}",
             "Marital Status": "={{ $json.output.maritalStatus }}",
             "Mortgage Status": "={{ $json.output.mortgageStatus }}",
             "Nationality": "={{ $json.output.nationality }}",
@@ -1543,563 +302,8 @@
             "Qualified Lead": "={{ $json.output.qualifiedLead }}",
             "Timeline": "={{ $json.output.timeline }}"
           },
-          "matchingColumns": [
-            "Conversation ID"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": true,
-              "removed": false
-            },
-            {
-              "id": "Name",
-              "displayName": "Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Notes",
-              "displayName": "Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Assignee",
-              "displayName": "Assignee",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Todo",
-                  "value": "Todo"
-                },
-                {
-                  "name": "In progress",
-                  "value": "In progress"
-                },
-                {
-                  "name": "Done",
-                  "value": "Done"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Attachments",
-              "displayName": "Attachments",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "array",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "First Name",
-              "displayName": "First Name",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Email",
-              "displayName": "Email",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Phone",
-              "displayName": "Phone",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Environment",
-              "displayName": "Environment",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "prod",
-                  "value": "prod"
-                },
-                {
-                  "name": "dev",
-                  "value": "dev"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source",
-              "displayName": "Source",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Form",
-                  "value": "Form"
-                },
-                {
-                  "name": "Inbound Call",
-                  "value": "Inbound Call"
-                },
-                {
-                  "name": "WhatsApp",
-                  "value": "WhatsApp"
-                },
-                {
-                  "name": "Outbound",
-                  "value": "Outbound"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Pipeline Stage",
-              "displayName": "Pipeline Stage",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "New",
-                  "value": "New"
-                },
-                {
-                  "name": "Qualifying",
-                  "value": "Qualifying"
-                },
-                {
-                  "name": "Awaiting Documents",
-                  "value": "Awaiting Documents"
-                },
-                {
-                  "name": "Documents Validated",
-                  "value": "Documents Validated"
-                },
-                {
-                  "name": "Booked",
-                  "value": "Booked"
-                },
-                {
-                  "name": "Lost",
-                  "value": "Lost"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Opt In",
-              "displayName": "Opt In",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Qualified Lead",
-              "displayName": "Qualified Lead",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Nationality",
-              "displayName": "Nationality",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Age",
-              "displayName": "Age",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Marital Status",
-              "displayName": "Marital Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Single",
-                  "value": "Single"
-                },
-                {
-                  "name": "Married",
-                  "value": "Married"
-                },
-                {
-                  "name": "Divorced",
-                  "value": "Divorced"
-                },
-                {
-                  "name": "Widowed",
-                  "value": "Widowed"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Number of Children",
-              "displayName": "Number of Children",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Net Salary",
-              "displayName": "Net Salary",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Budget",
-              "displayName": "Budget",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Timeline",
-              "displayName": "Timeline",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "0-3 months",
-                  "value": "0-3 months"
-                },
-                {
-                  "name": "3-6 months",
-                  "value": "3-6 months"
-                },
-                {
-                  "name": "6-12 months",
-                  "value": "6-12 months"
-                },
-                {
-                  "name": "12+ months",
-                  "value": "12+ months"
-                },
-                {
-                  "name": "Just exploring",
-                  "value": "Just exploring"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Mortgage Status",
-              "displayName": "Mortgage Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "No mortgage yet - needs help",
-                  "value": "No mortgage yet - needs help"
-                },
-                {
-                  "name": "Mortgage in principle",
-                  "value": "Mortgage in principle"
-                },
-                {
-                  "name": "Mortgage approved",
-                  "value": "Mortgage approved"
-                },
-                {
-                  "name": "Already has mortgage",
-                  "value": "Already has mortgage"
-                },
-                {
-                  "name": "Unknown",
-                  "value": "Unknown"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Property Type",
-              "displayName": "Property Type",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Apartment",
-                  "value": "Apartment"
-                },
-                {
-                  "name": "House",
-                  "value": "House"
-                },
-                {
-                  "name": "Detached house",
-                  "value": "Detached house"
-                },
-                {
-                  "name": "Semi-detached house",
-                  "value": "Semi-detached house"
-                },
-                {
-                  "name": "Plot of land",
-                  "value": "Plot of land"
-                },
-                {
-                  "name": "Commercial",
-                  "value": "Commercial"
-                },
-                {
-                  "name": "Other",
-                  "value": "Other"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Preferred Areas",
-              "displayName": "Preferred Areas",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Conversation ID",
-              "displayName": "Conversation ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call SID",
-              "displayName": "Call SID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Call Status",
-              "displayName": "Call Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Not Initiated",
-                  "value": "Not Initiated"
-                },
-                {
-                  "name": "Initiated",
-                  "value": "Initiated"
-                },
-                {
-                  "name": "Answered",
-                  "value": "Answered"
-                },
-                {
-                  "name": "Completed",
-                  "value": "Completed"
-                },
-                {
-                  "name": "Failed",
-                  "value": "Failed"
-                },
-                {
-                  "name": "No Answer",
-                  "value": "No Answer"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Vorgangsnummer",
-              "displayName": "Vorgangsnummer",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "ID Number",
-              "displayName": "ID Number",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Selbstauskunft Submitted",
-              "displayName": "Selbstauskunft Submitted",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Folder URL",
-              "displayName": "Documents Folder URL",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Documents Complete",
-              "displayName": "Documents Complete",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Calendly Booking",
-              "displayName": "Calendly Booking",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
+          "matchingColumns": ["Call SID"],
+          "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
@@ -2109,16 +313,8 @@
       "name": "Update record1",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
-      "position": [
-        -832,
-        -32
-      ],
-      "credentials": {
-        "airtableOAuth2Api": {
-          "id": "Q4E2GVpHjyxqL1oI",
-          "name": "Airtable Demo Test OAuth2"
-        }
-      },
+      "position": [-832, -24],
+      "credentials": { "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" } },
       "onError": "continueRegularOutput"
     },
     {
@@ -2138,18 +334,11 @@
       "name": "Basic LLM Chain1",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
-      "position": [
-        -608,
-        -32
-      ]
+      "position": [-608, -24]
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4.1-mini"
-        },
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
         "builtInTools": {},
         "options": {}
       },
@@ -2157,249 +346,53 @@
       "name": "OpenAI Chat Model2",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [
-        -544,
-        208
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "3jDEORaDQgY0e79T",
-          "name": "OpenAi account 2"
-        }
-      }
+      "position": [-536, 200],
+      "credentials": { "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" } }
     },
     {
       "parameters": {
-        "from": "+12176948447",
-        "to": "={{ $('Update record1').item.json.fields['Phone'] }}",
-        "message": "={{ $json.text }}",
-        "options": {}
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ $('Update record1').item.json.fields['Phone'].replace('+', '') + '@c.us' }}",
+        "reply_to": "=",
+        "text": "={{ $json.text }}",
+        "requestOptions": {}
       },
       "id": "e58cf3b5-b995-4d89-bbb6-8957f735868d",
       "name": "Send a text message1",
-      "type": "n8n-nodes-base.twilio",
-      "typeVersion": 1,
-      "position": [
-        -256,
-        -32
-      ],
-      "credentials": {
-        "twilioApi": {
-          "id": "HwSM8Pyd4IvbCes6",
-          "name": "Twilio Test Demo 2"
-        }
-      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [-256, -24],
+      "credentials": { "wahaApi": { "id": "FkdOyqhhdQ01p2E8", "name": "WAHA account" } },
       "onError": "continueRegularOutput"
     }
   ],
-  "pinData": {},
   "connections": {
-    "On form submission": {
-      "main": [
-        [
-          {
-            "node": "If Opt-In",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If Opt-In": {
-      "main": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "OpenAI Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Structured Output Parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Basic LLM Chain": {
-      "main": [
-        [
-          {
-            "node": "Create a record",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create a record": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
-      "main": [
-        [
-          {
-            "node": "11 Labs Calling Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "11 Labs Calling Agent": {
-      "main": [
-        [
-          {
-            "node": "Update record",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Structured Output Parser1": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Format Response",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Format Response",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format Response": {
-      "main": [
-        [
-          {
-            "node": "Update record1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update record1": {
-      "main": [
-        [
-          {
-            "node": "Basic LLM Chain1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model2": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Basic LLM Chain1",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Basic LLM Chain1": {
-      "main": [
-        [
-          {
-            "node": "Send a text message1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Respond to Webhook": {
-      "main": [
-        [
-          {
-            "node": "Format Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "On form submission": { "main": [[{ "node": "If Opt-In", "type": "main", "index": 0 }]] },
+    "If Opt-In": { "main": [[{ "node": "Basic LLM Chain", "type": "main", "index": 0 }], []] },
+    "OpenAI Chat Model": { "ai_languageModel": [[{ "node": "Basic LLM Chain", "type": "ai_languageModel", "index": 0 }]] },
+    "Structured Output Parser": { "ai_outputParser": [[{ "node": "Basic LLM Chain", "type": "ai_outputParser", "index": 0 }]] },
+    "Basic LLM Chain": { "main": [[{ "node": "Create a record", "type": "main", "index": 0 }]] },
+    "Create a record": { "main": [[{ "node": "Send a text message", "type": "main", "index": 0 }]] },
+    "Send a text message": { "main": [[{ "node": "Wait", "type": "main", "index": 0 }]] },
+    "Wait": { "main": [[{ "node": "Telnyx Calling Agent", "type": "main", "index": 0 }]] },
+    "Telnyx Calling Agent": { "main": [[{ "node": "Update record", "type": "main", "index": 0 }]] },
+    "Structured Output Parser1": { "ai_outputParser": [[{ "node": "Format Response", "type": "ai_outputParser", "index": 0 }]] },
+    "OpenAI Chat Model1": { "ai_languageModel": [[{ "node": "Format Response", "type": "ai_languageModel", "index": 0 }]] },
+    "Format Response": { "main": [[{ "node": "Update record1", "type": "main", "index": 0 }]] },
+    "Update record1": { "main": [[{ "node": "Basic LLM Chain1", "type": "main", "index": 0 }]] },
+    "OpenAI Chat Model2": { "ai_languageModel": [[{ "node": "Basic LLM Chain1", "type": "ai_languageModel", "index": 0 }]] },
+    "Basic LLM Chain1": { "main": [[{ "node": "Send a text message1", "type": "main", "index": 0 }]] },
+    "Webhook": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] },
+    "Respond to Webhook": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] }
   },
-  "active": true,
   "settings": {
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "56d18536-bae4-420e-be7d-85aaac61e47a",
-  "meta": {
-    "instanceId": "ba6f9edb57102715831ce6e6dfce9425be2f2b57569b52adf33f4b6dc95e192d"
-  },
-  "id": "0pmVB4ONklkXJIP0",
-  "tags": [
-    {
-      "updatedAt": "2026-05-14T16:50:11.415Z",
-      "createdAt": "2026-05-14T16:50:11.415Z",
-      "id": "ulb6kreE4SO3F1AV",
-      "name": "DEV"
-    }
-  ]
+  "pinData": {},
+  "staticData": null,
+  "meta": null
 }

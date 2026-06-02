@@ -64,16 +64,54 @@ Important:
 
 ---
 
-## ElevenLabs
+## Telnyx
+
+Both agents were imported from ElevenLabs and contain the same qualification prompt and French greeting.
+
+### Phone numbers
+
+| Purpose | Number | Phone Number ID | Notes |
+|---|---|---|---|
+| Outbound AI calls | +12018841021 | 2971878528225641699 | Used for DEV and PROD calls |
+
+### TeXML application
+
+| Purpose | App ID | Notes |
+|---|---|---|
+| AI call routing | 2972510149958174164 | Used in the `Telnyx Calling Agent` HTTP node |
+
+### Webhook (Part 2 — post-call)
+
+| Environment | URL |
+|---|---|
+| DEV | `https://n8n.srv1293983.hstgr.cloud/webhook/0a45c953-a3a2-4074-8df8-c37d416836bb-dev` |
+
+Record matching: `x-telnyx-call-control-id` header in the webhook = `call_sid` stored in Airtable by Part 1.
 
 ### DEV agents
 
 | Purpose | Agent name | Agent ID | Notes |
 |---|---|---|---|
-| Phone qualification agent | Financing Phone Agent - DEV | agent_0801khgdz2jeek0r874z6zcw875g | Use for testing only |
+| Phone qualification agent | Phone Qualification Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Use for testing only |
 
 ### PROD agents
 
 | Purpose | Agent name | Agent ID | Notes |
 |---|---|---|---|
-| Phone qualification agent | Financing Phone Agent - PROD | agent_5801krkqj6w8f48bdn02j64e8fdn | Do not modify unless explicitly approved |
+| Phone qualification agent | Phone Qualification Agent - PROD | assistant-53f0fcb1-1aa3-44a5-8d4c-124f834c8145 | Do not modify unless explicitly approved |
+
+---
+
+## ElevenLabs (replaced by Telnyx — do not use)
+
+### DEV agents
+
+| Purpose | Agent name | Agent ID | Notes |
+|---|---|---|---|
+| Phone qualification agent | Financing Phone Agent - DEV | agent_0801khgdz2jeek0r874z6zcw875g | Replaced by Telnyx DEV agent |
+
+### PROD agents
+
+| Purpose | Agent name | Agent ID | Notes |
+|---|---|---|---|
+| Phone qualification agent | Financing Phone Agent - PROD | agent_5801krkqj6w8f48bdn02j64e8fdn | Replaced by Telnyx PROD agent |

@@ -96,12 +96,12 @@ The phone workflow then:
 ```text
 cleans the phone number
 creates a customer row
-sends a pre-call SMS
-starts an ElevenLabs/Twilio AI call
-receives the call transcript
-extracts lead data
+sends a pre-call WhatsApp message via WAHA (French)
+starts a Telnyx AI outbound call
+receives the post-call summary via Telnyx webhook tool
+extracts structured lead data
 updates Airtable
-sends final confirmation SMS
+sends final confirmation WhatsApp message via WAHA (French)
 ```
 
 Main workflow:
@@ -314,16 +314,16 @@ flowchart LR
         OPT{"Opt-In<br/>Given?"}:::decision
         LLM["AI: Clean Phone<br/>+ Extract Name"]:::ai
         CRE["Create Airtable<br/>Record"]:::save
-        SMS["Pre-call SMS<br/>via Twilio"]:::send
-        EL["ElevenLabs<br/>Outbound Call"]:::process
-        UPD["Save Call IDs<br/>to Airtable"]:::save
+        SMS["Pre-call WhatsApp<br/>via WAHA"]:::send
+        EL["Telnyx<br/>Outbound Call"]:::process
+        UPD["Save Call SID<br/>to Airtable"]:::save
     end
 
-    subgraph PART2 ["  Part 2 – Transcript to SMS  "]
+    subgraph PART2 ["  Part 2 – Transcript to WhatsApp  "]
         WH2(["Transcript<br/>Webhook"]):::trigger
         FR["AI: Extract<br/>Structured Data"]:::ai
         UPD1["Update Airtable<br/>Record"]:::save
-        SMS1(["Send Confirmation<br/>SMS"]):::send
+        SMS1(["Send Confirmation<br/>WhatsApp"]):::send
     end
 
     STOP(["Stop"]):::stop

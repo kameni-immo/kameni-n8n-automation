@@ -5,7 +5,7 @@ This file is a one-to-one backup of the prompt used by the n8n phone-call transc
 It belongs to this workflow:
 
 ```text
-Data Ingestion Kameni - Finanzierung - DEV
+Phone Lead Ingestion - DEV (ID: 0pmVB4ONklkXJIP0)
 ```
 
 It documents the prompt used in the node:
@@ -24,8 +24,10 @@ Important:
 
 ## User Message Template
 
+The input comes from the Telnyx AI assistant's `send-lead-to-n8n` webhook tool, which posts a plain-text call summary.
+
 ```text
-=Transcript Summary: {{ $json.body.data.transcript.map(t => t.role + ": " + t.message).join("\n")  }}
+=Call Summary: {{ $json.body.call_summary }}
 ```
 
 ---
