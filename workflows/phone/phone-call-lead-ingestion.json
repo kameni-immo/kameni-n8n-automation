@@ -135,7 +135,7 @@
         "session": "=default",
         "chatId": "={{ $json.fields['Phone'].replace('+', '') + '@c.us' }}",
         "reply_to": "=",
-        "text": "=Hey {{ $json.fields['First Name'] }}, thanks for opting into our qualifying call! Our AI agent will be phoning you shortly to find out more about your situation. Please accept the call and answer the screening questions.",
+        "text": "=Bonjour {{ $('Basic LLM Chain').item.json.output[\"Customer First name\"] }}, merci pour votre inscription à notre appel de qualification ! Notre agent IA vous appellera très prochainement pour en savoir plus sur votre situation. Veuillez accepter l'appel et répondre aux questions de qualification.",
         "requestOptions": {}
       },
       "id": "206a6ca4-aad1-42c9-a5d9-637af7621934",
@@ -169,7 +169,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"From\": \"+12018841021\",\n  \"To\": \"{{ $('Create a record').item.json.fields['Phone'] }}\",\n  \"AIAssistantId\": \"assistant-3896d294-b584-483f-806f-09de4c94c8ca\"\n}",
+        "jsonBody": "={\n  \"From\": \"+12018841021\",\n  \"To\": \"{{ $('Create a record').item.json.fields['Phone'] }}\",\n  \"AIAssistantId\": \"assistant-3896d294-b584-483f-806f-09de4c94c8ca\",\n  \"dynamic_variables\": {\n    \"customer_phone\": \"{{ $('Create a record').item.json.fields['Phone'] }}\"\n  }\n}",
         "options": {}
       },
       "id": "d5770bbe-62f7-47e4-a677-dafecef6e141",
@@ -261,7 +261,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Transcript Summary: {{ $json.body.data.transcript.map(t => t.role + \": \" + t.message).join(\"\\n\")  }}",
+        "text": "=Call Summary: {{ $json.body.call_summary }}",
         "hasOutputParser": true,
         "messages": {
           "messageValues": [
@@ -287,10 +287,10 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
+            "Call SID": "={{ $('Webhook').item.json.headers['x-telnyx-call-control-id'] }}",
             "Age": "={{ $json.output.age }}",
             "Budget": "={{ $json.output.budgetRange }}",
             "Call Status": "Completed",
-            "Conversation ID": "={{ $('Webhook').item.json.body.data.conversation_id }}",
             "Marital Status": "={{ $json.output.maritalStatus }}",
             "Mortgage Status": "={{ $json.output.mortgageStatus }}",
             "Nationality": "={{ $json.output.nationality }}",
@@ -302,7 +302,7 @@
             "Qualified Lead": "={{ $json.output.qualifiedLead }}",
             "Timeline": "={{ $json.output.timeline }}"
           },
-          "matchingColumns": ["Conversation ID"],
+          "matchingColumns": ["Call SID"],
           "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
