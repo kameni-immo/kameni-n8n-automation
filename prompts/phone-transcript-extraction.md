@@ -2,17 +2,15 @@
 
 This file is a one-to-one backup of the prompt used by the n8n phone-call transcript extraction step.
 
-It belongs to this workflow:
+It is used in the `Format Response` node in two workflows:
 
 ```text
-Phone Lead Ingestion - DEV (ID: 0pmVB4ONklkXJIP0)
+Data Ingestion Kameni - Finanzierung - DEV   (outbound phone workflow)
+Inbound Phone Lead Ingestion - DEV           (inbound phone workflow)
 ```
 
-It documents the prompt used in the node:
-
-```text
-Format Response
-```
+The extraction prompt is identical in both workflows.
+The user message template differs between them (see below).
 
 Important:
 - This file is a prompt backup.
@@ -22,12 +20,27 @@ Important:
 
 ---
 
-## User Message Template
-
-The input comes from the Telnyx AI assistant's `send-lead-to-n8n` webhook tool, which posts a plain-text call summary.
+## User Message Template — Outbound workflow
 
 ```text
-=Call Summary: {{ $json.body.call_summary }}
+=Transcript Summary: {{ $json.body.data.transcript.map(t => t.role + ": " + t.message).join("\n")  }}
+```
+
+## User Message Template — Inbound workflow
+
+The inbound workflow builds the transcript using a Code node ("Build Transcript") that
+fetches messages from the Telnyx conversations API and filters out tool-call noise.
+The Format Response node receives the clean transcript as:
+
+```text
+={{ $json.transcript }}
+```
+
+Where `$json.transcript` is a newline-separated string formatted as:
+```text
+Agent: <agent message>
+Caller: <caller message>
+...
 ```
 
 ---
@@ -109,3 +122,5 @@ Important:
 - Unknown select values should be `Unknown`.
 - Missing number values should be `0`.
 - Missing text values should be an empty string.
+- Values saved must always be in English, regardless of the language spoken in the call
+  (e.g. "Célibataire" → "Single", "Appartement" → "Apartment").

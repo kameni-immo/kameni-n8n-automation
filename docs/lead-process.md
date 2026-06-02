@@ -25,7 +25,8 @@ flowchart LR
 
     subgraph IN ["  Lead Entry  "]
         WA(["WhatsApp<br/>Message"]):::entry
-        PH(["Form +<br/>Phone Call"]):::entry
+        PH(["Form +<br/>Outbound Call"]):::entry
+        IB(["Inbound<br/>Phone Call"]):::entry
     end
 
     subgraph QUAL ["  AI Qualification  "]
@@ -44,6 +45,7 @@ flowchart LR
 
     WA --> AI
     PH --> AI
+    IB --> AI
     AI --> AT
     AT --> DOC --> APT --> FIN
 ```
@@ -52,11 +54,12 @@ flowchart LR
 
 ## 2. Main lead entry points
 
-There are currently two main entry points:
+There are currently three main entry points:
 
 ```text
 WhatsApp lead intake
-Phone-call lead intake
+Phone outbound lead intake (form → AI calls the lead)
+Phone inbound lead intake  (lead calls the AI directly)
 ```
 
 ### WhatsApp lead intake
@@ -87,27 +90,52 @@ workflows/whatsapp/save-qualified-lead-sub.json
 
 ---
 
-### Phone-call lead intake
+### Phone outbound lead intake
 
 The customer submits a form and gives opt-in for a call.
 
-The phone workflow then:
+The outbound phone workflow then:
 
 ```text
 cleans the phone number
 creates a customer row
-sends a pre-call WhatsApp message via WAHA (French)
+sends a pre-call WhatsApp message
 starts a Telnyx AI outbound call
-receives the post-call summary via Telnyx webhook tool
-extracts structured lead data
+receives the call transcript
+extracts lead data
 updates Airtable
-sends final confirmation WhatsApp message via WAHA (French)
+sends final confirmation WhatsApp
 ```
 
 Main workflow:
 
 ```text
 workflows/phone/phone-call-lead-ingestion.json
+```
+
+---
+
+### Phone inbound lead intake
+
+The customer calls the company's Telnyx phone number directly.
+
+The Telnyx AI assistant answers the call and runs through qualification questions.
+
+The inbound phone workflow then:
+
+```text
+receives a webhook from the Telnyx assistant when the call ends (carries the call_control_id)
+matches the Telnyx conversation by call_control_id and pulls the full transcript via the Telnyx API
+reads the caller's phone number from the conversation metadata
+extracts structured lead data from the transcript with an AI node
+upserts the customer row in Airtable, keyed on the Telnyx Conversation ID (Original Source = Inbound Call)
+sends final confirmation WhatsApp
+```
+
+Main workflow:
+
+```text
+workflows/phone/inbound-phone-lead-ingestion.json
 ```
 
 ---
@@ -314,16 +342,16 @@ flowchart LR
         OPT{"Opt-In<br/>Given?"}:::decision
         LLM["AI: Clean Phone<br/>+ Extract Name"]:::ai
         CRE["Create Airtable<br/>Record"]:::save
-        SMS["Pre-call WhatsApp<br/>via WAHA"]:::send
-        EL["Telnyx<br/>Outbound Call"]:::process
-        UPD["Save Call SID<br/>to Airtable"]:::save
+        SMS["Pre-call SMS<br/>via Twilio"]:::send
+        EL["ElevenLabs<br/>Outbound Call"]:::process
+        UPD["Save Call IDs<br/>to Airtable"]:::save
     end
 
-    subgraph PART2 ["  Part 2 – Transcript to WhatsApp  "]
+    subgraph PART2 ["  Part 2 – Transcript to SMS  "]
         WH2(["Transcript<br/>Webhook"]):::trigger
         FR["AI: Extract<br/>Structured Data"]:::ai
         UPD1["Update Airtable<br/>Record"]:::save
-        SMS1(["Send Confirmation<br/>WhatsApp"]):::send
+        SMS1(["Send Confirmation<br/>SMS"]):::send
     end
 
     STOP(["Stop"]):::stop
@@ -343,9 +371,10 @@ docs/phone-call-flow.md
 Prompt backups:
 
 ```text
-prompts/phone-contact-cleanup.md
-prompts/phone-transcript-extraction.md
-prompts/phone-confirmation-sms.md
+prompts/phone-contact-cleanup.md          (outbound: phone number cleaning)
+prompts/phone-transcript-extraction.md    (both outbound and inbound: transcript extraction)
+prompts/phone-confirmation-sms.md         (outbound: confirmation SMS)
+prompts/inbound-whatsapp-confirmation.md  (inbound: WhatsApp confirmation with full field list)
 ```
 
 ---
