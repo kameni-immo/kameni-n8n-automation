@@ -678,7 +678,93 @@ n8n PROD = where the stable workflow runs live
 
 ---
 
-## 13. Common mistakes to avoid
+## 13. Inbound phone call flow
+
+This is a separate second channel. The lead calls the company number instead of being called.
+
+### How it works
+
+```text
+Lead calls +12018841021 (DEV Telnyx number)
+→ Telnyx routes the call to the inbound AI assistant
+→ AI assistant greets the caller and asks 10 qualification questions
+→ At the end the assistant calls the send-lead-to-n8n-inbound webhook ONCE, then hangs up
+→ The webhook carries the Telnyx call_control_id in the x-telnyx-call-control-id header
+   (the webhook body itself is empty — n8n does NOT rely on it)
+→ n8n lists the most recent Telnyx conversations and matches the one whose
+   metadata.call_control_id equals the header value
+→ From that conversation n8n reads the caller's phone (metadata.telnyx_end_user_target)
+   and the Telnyx conversation id
+→ n8n fetches that conversation's messages (the full transcript) from the Telnyx API
+→ An AI node extracts the 10 structured qualification fields from the transcript
+→ n8n upserts the customer row in Airtable, keyed on Conversation ID (one row per call)
+→ Confirmation WhatsApp is sent to the caller
+```
+
+Why the data is pulled from the Telnyx API instead of the webhook body:
+the assistant's webhook tool sends an empty body, and the caller may hang up
+before any summary is produced. The Telnyx conversation (transcript + caller
+number) is always available via the API using the call_control_id, so n8n
+reconstructs everything from there. This makes the flow robust even if the
+caller hangs up early.
+
+Assistant tool requirement: the inbound Telnyx assistant MUST have BOTH a
+`webhook` tool (send-lead-to-n8n-inbound) AND a `hangup` tool. Without the
+hangup tool the agent cannot end the call, loops on caller silence, and
+re-fires the webhook many times. The Airtable upsert is keyed on Conversation
+ID, so repeated fires of the same call collapse into a single row.
+
+### Key differences from outbound
+
+| | Outbound | Inbound |
+|---|---|---|
+| Trigger | Form submission | Lead calls the number |
+| Pre-call WhatsApp | Yes | No |
+| Airtable row created | Before the call (from form data) | After the call (from transcript) |
+| Original Source | Form | Inbound Call |
+| Last Contact Channel | Outbound | Inbound Call |
+
+### Telnyx inbound assistant (DEV)
+
+```text
+Name: Phone Inbound Qualification Agent - DEV
+ID:   assistant-148bc1e6-764c-4070-a4c0-94875e8d169a
+Webhook: https://n8n.srv1293983.hstgr.cloud/webhook/inbound-phone-lead-dev
+```
+
+### n8n inbound workflow (DEV)
+
+```text
+Name: Inbound Phone Lead Ingestion - DEV
+ID:   aoHOxDflf4U5VIDn
+```
+
+### Inbound flow diagram
+
+```mermaid
+flowchart LR
+    classDef trigger  fill:#1E88E5,color:#fff,stroke:#1565C0,stroke-width:2px
+    classDef ai       fill:#00ACC1,color:#fff,stroke:#006064,stroke-width:2px
+    classDef save     fill:#43A047,color:#fff,stroke:#2E7D32,stroke-width:2px
+    classDef send     fill:#8E24AA,color:#fff,stroke:#6A1B9A,stroke-width:2px
+
+    CALL(["Lead calls<br/>Telnyx number"]):::trigger
+    AIASST["Telnyx AI Assistant<br/>asks 10 questions<br/>then webhook + hangup"]:::ai
+    WH(["Webhook fires to n8n<br/>call_control_id header"]):::trigger
+    RW["Respond to webhook"]:::save
+    LIST["List recent Telnyx<br/>conversations"]:::save
+    MATCH["Match call_control_id<br/>conv id + caller phone"]:::save
+    MSG["Get conversation<br/>messages = transcript"]:::save
+    EXT["AI extracts<br/>structured data"]:::ai
+    UPSERT["Airtable upsert<br/>keyed on Conversation ID"]:::save
+    SMS(["Send confirmation<br/>WhatsApp via WAHA"]):::send
+
+    CALL --> AIASST --> WH --> RW --> LIST --> MATCH --> MSG --> EXT --> UPSERT --> SMS
+```
+
+---
+
+## 14. Common mistakes to avoid
 
 ```text
 Do not call customers without Opt-In.
@@ -693,26 +779,32 @@ Do update Last Contact Channel when a new contact happens.
 
 ---
 
-## 14. Short summary
+## 15. Short summary
+
+### Outbound flow
 
 ```text
 Form collects basic customer data
 Opt-In protects consent
 AI cleans phone and first name
 Airtable row is created
-SMS warns customer about call
-ElevenLabs starts outbound call
+Pre-call WhatsApp message is sent
+Telnyx AI starts outbound call
 Call IDs are saved
 Transcript webhook receives call result
 AI extracts structured financing data
 Airtable is updated
-Final SMS confirms saved data
+Confirmation WhatsApp is sent
 ```
 
-Most important rule:
+### Inbound flow
 
 ```text
-Initial form creates the lead.
-AI phone call completes the qualification.
-Transcript extraction updates the same Airtable row.
+Lead calls the Telnyx number
+Telnyx AI assistant answers and asks qualification questions
+Assistant calls the webhook once and hangs up when the call ends
+n8n matches the Telnyx conversation by call_control_id and pulls the transcript via the Telnyx API
+AI extracts structured data from the transcript
+Airtable row is upserted, keyed on the Telnyx Conversation ID (one row per call)
+Confirmation WhatsApp is sent
 ```

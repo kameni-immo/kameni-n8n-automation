@@ -1,0 +1,280 @@
+{
+  "id": "aoHOxDflf4U5VIDn",
+  "name": "Inbound Phone Lead Ingestion - DEV",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inbound-phone-lead-dev",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "inb-wh-001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, -208],
+      "webhookId": "inbound-phone-lead-dev",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"received\", \"message\": \"Inbound call transcript accepted for processing\" }",
+        "options": {}
+      },
+      "id": "inb-rwh-001",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [224, -208]
+    },
+    {
+      "parameters": {
+        "url": "https://api.telnyx.com/v2/ai/conversations",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "page[size]", "value": "10" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "inb-telnyx-conv-001",
+      "name": "Get Telnyx Conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [448, -208],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oT7mvOYgHjm2e6xy",
+          "name": "Telnyx API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ccid = $('Webhook').first().json.headers['x-telnyx-call-control-id'];\nconst convs = $input.first().json.data || [];\nconst match = convs.find(c => c.metadata && c.metadata.call_control_id === ccid);\nif (!match) { return []; }\nreturn [{ json: { conversationId: match.id, phone: (match.metadata.telnyx_end_user_target || match.metadata.from || '') } }];"
+      },
+      "id": "inb-match-001",
+      "name": "Match Conversation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [672, -208]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telnyx.com/v2/ai/conversations/{{ $json.conversationId }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "page[size]", "value": "100" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "inb-msgs-001",
+      "name": "Get Messages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [896, -208],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oT7mvOYgHjm2e6xy",
+          "name": "Telnyx API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const phone = $('Match Conversation').first().json.phone;\nconst msgs = ($input.first().json.data || [])\n  .filter(m => m.text && String(m.text).trim() !== '' && (m.role === 'user' || m.role === 'assistant') && !m.tool_calls)\n  .sort((a,b) => new Date(a.created_at) - new Date(b.created_at));\nconst transcript = msgs.map(m => (m.role === 'user' ? 'Caller' : 'Agent') + ': ' + m.text).join('\\n');\nreturn [{ json: { phone, transcript: transcript || 'No conversation content' } }];"
+      },
+      "id": "inb-trans-001",
+      "name": "Build Transcript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, -208]
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "inb-oai-001",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [1352, 16],
+      "credentials": {
+        "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"nationality\": \"Cameroonian\",\n  \"age\": 35,\n  \"maritalStatus\": \"Single | Married | Divorced | Widowed | Unknown\",\n  \"numberChildren\": 2,\n  \"netSalary\": 3000,\n  \"budgetRange\": 350000,\n  \"timeline\": \"0-3 months | 3-6 months | 6-12 months | 12+ months | Just exploring\",\n  \"mortgageStatus\": \"No mortgage yet - needs help | Mortgage in principle | Mortgage approved | Already has mortgage | Unknown\",\n  \"propertyType\": \"Apartment | House | Detached house | Semi-detached house | Plot of land | Commercial | Other\",\n  \"preferredAreas\": \"Munich, Schwabing\",\n  \"qualifiedLead\": true\n}"
+      },
+      "id": "inb-sop-001",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [1480, 16]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.transcript }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a smart assistant that extracts structured answers from a phone conversation summary.\n\nFocus on returning **only the buyer's answers**, not the questions themselves.\n\nExtract these 10 fields with the SPECIFIED format:\n\n1. **nationality** (string): The customer's nationality (e.g. \"Cameroonian\", \"German\", \"French\")\n2. **age** (NUMBER, integer): The customer's age. Convert text to number (e.g. \"forty\" -> 40)\n3. **maritalStatus** (string, MUST match one of): \"Single\", \"Married\", \"Divorced\", \"Widowed\", \"Unknown\"\n4. **numberChildren** (NUMBER, integer): Number of children (0 if none mentioned)\n5. **netSalary** (NUMBER, integer in EUR): Net monthly salary as a number, no currency symbol (e.g. \"3000 euros\" -> 3000)\n6. **budgetRange** (NUMBER, integer in EUR): Property budget as a number (e.g. \"around 400k\" -> 400000)\n7. **timeline** (string, MUST match one of): \"0-3 months\", \"3-6 months\", \"6-12 months\", \"12+ months\", \"Just exploring\"\n8. **mortgageStatus** (string, MUST match one of): \"No mortgage yet - needs help\", \"Mortgage in principle\", \"Mortgage approved\", \"Already has mortgage\", \"Unknown\"\n9. **propertyType** (string, MUST match one of): \"Apartment\", \"House\", \"Detached house\", \"Semi-detached house\", \"Plot of land\", \"Commercial\", \"Other\"\n10. **preferredAreas** (string): Free text list of areas/neighbourhoods mentioned\n\nAlso include:\n- **qualifiedLead** (boolean): true if customer has clear timeline (within 12 months), reasonable budget/income, and clarity on mortgage status; otherwise false\n\nIMPORTANT:\n- For singleSelect fields, you MUST use one of the exact values listed.\n- For NUMBER fields, return integers without quotes, no currency symbols.\n- If a field cannot be determined from the summary, use \"Unknown\" for selects, 0 for numbers, empty string for text.\n- Values saved must be in English regardless of the language of the call."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "inb-fmt-001",
+      "name": "Format Response",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [1344, -208]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appn65GylpcWvByIP",
+          "mode": "list",
+          "cachedResultName": "Financing Automation - DEV"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblbtkyGl7pSOpClC",
+          "mode": "list",
+          "cachedResultName": "customers_dev",
+          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $('Build Transcript').item.json.phone }}",
+            "Conversation ID": "={{ $('Match Conversation').item.json.conversationId }}",
+            "Original Source": "Inbound Call",
+            "Last Contact Channel": "Inbound Call",
+            "Pipeline Stage": "Qualifying",
+            "Environment": "dev",
+            "Call Status": "Completed",
+            "Opt In": true,
+            "Nationality": "={{ $json.output.nationality }}",
+            "Age": "={{ $json.output.age }}",
+            "Marital Status": "={{ $json.output.maritalStatus }}",
+            "Number of Children": "={{ $json.output.numberChildren }}",
+            "Net Salary": "={{ $json.output.netSalary }}",
+            "Budget": "={{ $json.output.budgetRange }}",
+            "Timeline": "={{ $json.output.timeline }}",
+            "Mortgage Status": "={{ $json.output.mortgageStatus }}",
+            "Property Type": "={{ $json.output.propertyType }}",
+            "Preferred Areas": "={{ $json.output.preferredAreas }}",
+            "Qualified Lead": "={{ $json.output.qualifiedLead }}"
+          },
+          "matchingColumns": ["Conversation ID"],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "inb-at-upsert-001",
+      "name": "Upsert Airtable Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1696, -208],
+      "credentials": {
+        "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "inb-oai-sms-001",
+      "name": "OpenAI Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [1992, 16],
+      "credentials": {
+        "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer Details:\nNationality - {{ $('Format Response').item.json.output.nationality }}\nAge - {{ $('Format Response').item.json.output.age }}\nMarital Status - {{ $('Format Response').item.json.output.maritalStatus }}\nNumber of Children - {{ $('Format Response').item.json.output.numberChildren }}\nNet Salary - {{ $('Format Response').item.json.output.netSalary }}\nBudget - {{ $('Format Response').item.json.output.budgetRange }}\nTimeline - {{ $('Format Response').item.json.output.timeline }}\nMortgage Status - {{ $('Format Response').item.json.output.mortgageStatus }}\nProperty Type - {{ $('Format Response').item.json.output.propertyType }}\nPreferred Areas - {{ $('Format Response').item.json.output.preferredAreas }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Vous êtes un assistant qui envoie un message WhatsApp de confirmation après un appel de qualification immobilière.\n\nInstructions:\n- Ton chaleureux et professionnel.\n- Commencez par remercier le client pour son appel et confirmer que son dossier a bien été enregistré.\n- Listez TOUS les 10 champs collectés, chacun sur une ligne séparée avec un tiret.\n- Terminez par une phrase engageante indiquant que l'équipe le recontactera prochainement.\n- Rédigez TOUJOURS en français, peu importe la langue de l'appel.\n\nFormat attendu:\nBonjour ! Merci pour votre appel. Votre dossier a bien été enregistré avec les informations suivantes :\n- Nationalité : [valeur]\n- Âge : [valeur] ans\n- Situation familiale : [valeur]\n- Nombre d'enfants : [valeur]\n- Salaire net mensuel : [valeur] €\n- Budget d'achat : [valeur] €\n- Calendrier d'achat : [valeur]\n- Situation hypothécaire : [valeur]\n- Type de bien : [valeur]\n- Zones préférées : [valeur]\n\nNotre équipe vous contactera prochainement. À très bientôt !"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "inb-llm-sms-001",
+      "name": "Basic LLM Chain1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [1920, -208]
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "=default",
+        "chatId": "={{ ($('Build Transcript').item.json.phone || '').replace('+', '') + '@c.us' }}",
+        "reply_to": "=",
+        "text": "={{ $json.text }}",
+        "requestOptions": {}
+      },
+      "id": "inb-waha-001",
+      "name": "Send WhatsApp Confirmation",
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [2272, -208],
+      "credentials": {
+        "wahaApi": { "id": "FkdOyqhhdQ01p2E8", "name": "WAHA account" }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] },
+    "Respond to Webhook": { "main": [[{ "node": "Get Telnyx Conversation", "type": "main", "index": 0 }]] },
+    "Get Telnyx Conversation": { "main": [[{ "node": "Match Conversation", "type": "main", "index": 0 }]] },
+    "Match Conversation": { "main": [[{ "node": "Get Messages", "type": "main", "index": 0 }]] },
+    "Get Messages": { "main": [[{ "node": "Build Transcript", "type": "main", "index": 0 }]] },
+    "Build Transcript": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] },
+    "OpenAI Chat Model1": { "ai_languageModel": [[{ "node": "Format Response", "type": "ai_languageModel", "index": 0 }]] },
+    "Structured Output Parser1": { "ai_outputParser": [[{ "node": "Format Response", "type": "ai_outputParser", "index": 0 }]] },
+    "Format Response": { "main": [[{ "node": "Upsert Airtable Record", "type": "main", "index": 0 }]] },
+    "Upsert Airtable Record": { "main": [[{ "node": "Basic LLM Chain1", "type": "main", "index": 0 }]] },
+    "OpenAI Chat Model2": { "ai_languageModel": [[{ "node": "Basic LLM Chain1", "type": "ai_languageModel", "index": 0 }]] },
+    "Basic LLM Chain1": { "main": [[{ "node": "Send WhatsApp Confirmation", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
