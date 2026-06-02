@@ -254,6 +254,32 @@ After completing any change:
 
 If a change spans multiple areas (e.g., a new Airtable field that is also referenced in a prompt and a workflow), update all affected files.
 
+## Testing Rule
+
+After implementing any task, always verify it works before reporting completion or moving to the next task.
+
+Steps to follow after every implementation:
+
+1. Show the user exactly how to test the change — specific steps, not generic advice.
+2. Execute or walk through the test yourself where possible (trigger a DEV webhook, check an Airtable row, verify an n8n execution log).
+3. Report the result clearly: what passed, what the output was, and any issues found.
+4. Do not move to the next task until the user confirms the test passed.
+
+General testing checklist for n8n workflow changes:
+
+```text
+1. Trigger the workflow with a test payload (use files in tests/ where available)
+2. Check the n8n execution log — no errors, all nodes green
+3. Open customers_dev in Airtable and verify the expected fields are populated
+4. If the workflow sends a message (WhatsApp, email), confirm it was received with correct content
+```
+
+Never report a task as done if:
+
+- The n8n execution log shows errors
+- Airtable was not updated as expected
+- The expected customer-facing message was not received
+
 ## Working Style
 
 Work in small steps.
