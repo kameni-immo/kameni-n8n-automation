@@ -342,8 +342,8 @@ flowchart LR
         OPT{"Opt-In<br/>Given?"}:::decision
         LLM["AI: Clean Phone<br/>+ Extract Name"]:::ai
         CRE["Create Airtable<br/>Record"]:::save
-        SMS["Pre-call SMS<br/>via Twilio"]:::send
-        EL["ElevenLabs<br/>Outbound Call"]:::process
+        SMS["Pre-call WhatsApp<br/>via WAHA"]:::send
+        EL["Telnyx<br/>Outbound Call"]:::process
         UPD["Save Call IDs<br/>to Airtable"]:::save
     end
 
@@ -351,7 +351,7 @@ flowchart LR
         WH2(["Transcript<br/>Webhook"]):::trigger
         FR["AI: Extract<br/>Structured Data"]:::ai
         UPD1["Update Airtable<br/>Record"]:::save
-        SMS1(["Send Confirmation<br/>SMS"]):::send
+        SMS1(["Send Confirmation<br/>WhatsApp"]):::send
     end
 
     STOP(["Stop"]):::stop

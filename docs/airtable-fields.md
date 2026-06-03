@@ -182,12 +182,12 @@ Other
 
 ---
 
-## 6. Phone call / ElevenLabs fields
+## 6. Phone call / Telnyx fields
 
 | Field | Type | Meaning | Example |
 |---|---|---|---|
-| `Conversation ID` | Text | ElevenLabs conversation ID | conv_test_123 |
-| `Call SID` | Text | Twilio call ID | CA123456789 |
+| `Conversation ID` | Text | Telnyx conversation ID | conv_test_123 |
+| `Call SID` | Text | Telnyx call SID | CA123456789 |
 | `Call Status` | Single select | Current call status | Completed |
 
 Recommended `Call Status` values:
@@ -204,8 +204,8 @@ No Answer
 Simple meaning:
 
 ```text
-Conversation ID = ID from ElevenLabs conversation
-Call SID        = ID from Twilio phone call
+Conversation ID = ID from Telnyx conversation
+Call SID        = ID from Telnyx call
 Call Status     = what happened with the call
 ```
 
@@ -259,7 +259,7 @@ Last Contact Channel: WhatsApp whenever customer sends a WhatsApp message
 Table: customers_dev
 Environment: dev
 Original Source: Form or Inbound Call when creating new customer
-Last Contact Channel: Outbound when AI/Twilio/ElevenLabs calls the customer
+Last Contact Channel: Outbound when the Telnyx AI calls the customer
 ```
 
 ### Phone / outbound PROD workflow
@@ -268,7 +268,7 @@ Last Contact Channel: Outbound when AI/Twilio/ElevenLabs calls the customer
 Table: customers_prod
 Environment: prod
 Original Source: Form or Inbound Call when creating new customer
-Last Contact Channel: Outbound when AI/Twilio/ElevenLabs calls the customer
+Last Contact Channel: Outbound when the Telnyx AI calls the customer
 ```
 
 ---

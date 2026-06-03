@@ -14,13 +14,14 @@ Important:
 #### WhatsApp
 | Purpose | Workflow name | Workflow ID | Notes |
 |---|---|---|---|
-| WhatsApp lead intake | WhatsApp Lead Ingestion - DEV | 1A68dQXM9FG7BGV66f0RG | Main WhatsApp workflow |
+| WhatsApp lead intake | WhatsApp Agent - Main - DEV | 1A68dQXM9FG7BGV66f0RG | Main WhatsApp workflow |
 | Save/update customer | Save Qualified Lead - Sub - DEV | mqJcNmPVa9fB56hYD7Kcg | Sub-workflow called by main workflow |
 
 #### Phone
 | Purpose | Workflow name | Workflow ID | Notes |
 |---|---|---|---|
-| Phone lead intake | Phone Lead Ingestion - DEV | 0pmVB4ONklkXJIP0 | Main Phone workflow |
+| Outbound phone lead intake (form-triggered) | Phone Lead Ingestion - DEV | 0pmVB4ONklkXJIP0 | Form → Telnyx outbound AI call → transcript → Airtable |
+| Inbound phone lead intake (Telnyx webhook) | Inbound Phone Lead Ingestion - DEV | aoHOxDflf4U5VIDn | Telnyx inbound call webhook → transcript → Airtable upsert → WhatsApp confirmation |
 
 
 ### PROD workflows
@@ -28,7 +29,7 @@ Important:
 #### WhatsApp
 | Purpose | Workflow name | Workflow ID | Notes |
 |---|---|---|---|
-| WhatsApp lead intake | WhatsApp Lead Ingestion - PROD | VXAOQEcp5Kl0L1XI | Do not edit unless explicitly approved |
+| WhatsApp lead intake | WhatsApp Agent - Main - PROD | VXAOQEcp5Kl0L1XI | Do not edit unless explicitly approved |
 | Save/update customer | Save Qualified Lead - Sub - PROD | wjnVy8UBko5YuwI6 | Do not edit unless explicitly approved |
 
 #### Phone

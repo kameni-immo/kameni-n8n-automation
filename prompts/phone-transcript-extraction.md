@@ -5,8 +5,8 @@ This file is a one-to-one backup of the prompt used by the n8n phone-call transc
 It is used in the `Format Response` node in two workflows:
 
 ```text
-Data Ingestion Kameni - Finanzierung - DEV   (outbound phone workflow)
-Inbound Phone Lead Ingestion - DEV           (inbound phone workflow)
+Phone Lead Ingestion - DEV          (outbound phone workflow)
+Inbound Phone Lead Ingestion - DEV  (inbound phone workflow)
 ```
 
 The extraction prompt is identical in both workflows.
