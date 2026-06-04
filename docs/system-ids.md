@@ -66,26 +66,16 @@ Important:
 
 ## Telnyx
 
-### Phone number
+### DEV
 
-| Purpose | Number |
-|---|---|
-| Outbound calling | +12018841021 |
-
-### TeXML application
-
-| Purpose | App ID |
-|---|---|
-| AI call routing | 2972510149958174164 |
-
-### DEV agents
-
-| Purpose | Agent name | Agent ID | Notes |
+| Purpose | Name | ID / Value | Notes |
 |---|---|---|---|
-| Phone qualification agent | Financing Phone Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Use for testing only |
+| AI phone assistant | Financing Phone Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Use for testing only |
+| Outbound caller number | Telnyx DEV number | +12018841021 | Used as From number for outbound calls |
 
-### PROD agents
+### PROD
 
-| Purpose | Agent name | Agent ID | Notes |
+| Purpose | Name | ID / Value | Notes |
 |---|---|---|---|
-| Phone qualification agent | Financing Phone Agent - PROD | assistant-53f0fcb1-1aa3-44a5-8d4c-124f834c8145 | Do not modify unless explicitly approved |
+| AI phone assistant | Financing Phone Agent - PROD | TBD | Do not modify unless explicitly approved |
+| Outbound caller number | Telnyx PROD number | TBD | Do not modify unless explicitly approved |
