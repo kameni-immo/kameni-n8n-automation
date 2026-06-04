@@ -20,7 +20,9 @@ Important:
 #### Phone
 | Purpose | Workflow name | Workflow ID | Notes |
 |---|---|---|---|
-| Phone lead intake | Phone Lead Ingestion - DEV | 0pmVB4ONklkXJIP0 | Main Phone workflow |
+| Outbound phone lead intake | Phone Lead Ingestion - DEV | 0pmVB4ONklkXJIP0 | Triggered by form submission; outbound call flow |
+| Inbound call post-processing | Inbound Phone Lead Ingestion - DEV | aoHOxDflf4U5VIDn | Receives Telnyx webhook after inbound call ends; fetches transcript, upserts Airtable, sends SMS |
+| Inbound call pre-call lookup | Phone Dynamic Vars - DEV | 60ah2Vui5SZXNwXf | Called by Telnyx before call starts; looks up caller in Airtable and returns dynamic variables |
 
 
 ### PROD workflows
@@ -72,6 +74,7 @@ Important:
 |---|---|---|---|
 | AI phone assistant | Financing Phone Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Use for testing only |
 | Outbound caller number | Telnyx DEV number | +12018841021 | Used as From number for outbound calls |
+| Dynamic vars webhook | Phone Dynamic Vars - DEV (n8n) | https://n8n.srv1293983.hstgr.cloud/webhook/phone-dynamic-vars-dev | Set as dynamic_variables_webhook_url in the DEV assistant (Telnyx portal) |
 
 ### PROD
 

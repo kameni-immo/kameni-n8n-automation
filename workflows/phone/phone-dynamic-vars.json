@@ -1,0 +1,88 @@
+{
+  "id": "60ah2Vui5SZXNwXf",
+  "name": "Phone Dynamic Vars - DEV",
+  "active": true,
+  "nodes": [
+    {
+      "id": "pdv-wh-001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "webhookId": "phone-dynamic-vars-dev",
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "phone-dynamic-vars-dev",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "pdv-at-001",
+      "name": "Lookup Caller in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [240, 0],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "operation": "list",
+        "base": { "__rl": true, "value": "appn65GylpcWvByIP", "mode": "id" },
+        "table": { "__rl": true, "value": "tblbtkyGl7pSOpClC", "mode": "id" },
+        "filterByFormula": "={Phone}=\"{{ $('Webhook').item.json.body.from }}\"",
+        "options": {
+          "fields": {
+            "field": [
+              "id", "Name", "First Name", "Phone",
+              "Nationality", "Age", "Marital Status", "Number of Children",
+              "Net Salary", "Budget", "Timeline", "Mortgage Status",
+              "Property Type", "Preferred Areas"
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" }
+      }
+    },
+    {
+      "id": "pdv-code-001",
+      "name": "Build Dynamic Variables",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const phone = $('Webhook').first().json.body?.from || '';\nconst airtableItem = $input.first().json;\n// Airtable node returns { id, fields } when found, {} when not found (alwaysOutputData)\nconst customer = airtableItem.id ? airtableItem.fields : null;\n\nconst fieldMap = [\n  ['Nationality', 'nationality'],\n  ['Age', 'age'],\n  ['Marital Status', 'marital status'],\n  ['Number of Children', 'number of children'],\n  ['Net Salary', 'net salary'],\n  ['Budget', 'budget'],\n  ['Timeline', 'timeline'],\n  ['Mortgage Status', 'mortgage status'],\n  ['Property Type', 'property type'],\n  ['Preferred Areas', 'preferred areas']\n];\n\nif (!customer) {\n  return [{ json: {\n    customer_first_name: 'there',\n    is_returning_caller: 'no',\n    known_data: 'none',\n    missing_fields: fieldMap.map(f => f[1]).join(', ')\n  }}];\n}\n\nconst missing = [];\nconst known = [];\n\nfor (const [field, label] of fieldMap) {\n  const val = customer[field];\n  const isEmpty = val === null || val === undefined || val === '' || val === 0;\n  if (isEmpty) {\n    missing.push(label);\n  } else {\n    known.push(`${label}: ${val}`);\n  }\n}\n\nconst firstName =\n  customer['First Name'] ||\n  (customer['Name'] ? customer['Name'].split(' ')[0] : '') ||\n  'there';\n\nreturn [{ json: {\n  customer_first_name: firstName,\n  is_returning_caller: 'yes',\n  known_data: known.length > 0 ? known.join(', ') : 'none',\n  missing_fields: missing.length > 0 ? missing.join(', ') : 'none'\n}}];"
+      }
+    },
+    {
+      "id": "pdv-resp-001",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [720, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Lookup Caller in Airtable", "type": "main", "index": 0 }]]
+    },
+    "Lookup Caller in Airtable": {
+      "main": [[{ "node": "Build Dynamic Variables", "type": "main", "index": 0 }]]
+    },
+    "Build Dynamic Variables": {
+      "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
