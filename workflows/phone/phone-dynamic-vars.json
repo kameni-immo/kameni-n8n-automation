@@ -44,9 +44,8 @@
           "cachedResultName": "customers_dev",
           "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
         },
-        "filterByFormula": "={Phone} = '{{ $json.body.from }}'",
-        "returnAll": false,
-        "limit": 1,
+        "filterByFormula": "={Phone} = '{{ $json.body.data.payload.from }}'",
+        "returnAll": true,
         "options": {}
       },
       "credentials": {
@@ -61,7 +60,7 @@
       "position": [480, 0],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const phone = $('Webhook').first().json.body?.from || '';\nconst airtableItem = $input.first().json;\n// Airtable search returns fields at top level (not nested under .fields)\nconst customer = airtableItem.id ? airtableItem : null;\n\nconst fieldMap = [\n  ['Nationality', 'nationality'],\n  ['Age', 'age'],\n  ['Marital Status', 'marital status'],\n  ['Number of Children', 'number of children'],\n  ['Net Salary', 'net salary'],\n  ['Budget', 'budget'],\n  ['Timeline', 'timeline'],\n  ['Mortgage Status', 'mortgage status'],\n  ['Property Type', 'property type'],\n  ['Preferred Areas', 'preferred areas']\n];\n\nif (!customer) {\n  return [{ json: {\n    customer_first_name: 'there',\n    is_returning_caller: 'no',\n    known_data: 'none',\n    missing_fields: fieldMap.map(f => f[1]).join(', ')\n  }}];\n}\n\nconst missing = [];\nconst known = [];\n\nfor (const [field, label] of fieldMap) {\n  const val = customer[field];\n  const isEmpty = val === null || val === undefined || val === '' || val === 0;\n  if (isEmpty) {\n    missing.push(label);\n  } else {\n    known.push(`${label}: ${val}`);\n  }\n}\n\nconst firstName =\n  customer['First Name'] ||\n  (customer['Name'] ? customer['Name'].split(' ')[0] : '') ||\n  'there';\n\nreturn [{ json: {\n  customer_first_name: firstName,\n  is_returning_caller: 'yes',\n  known_data: known.length > 0 ? known.join(', ') : 'none',\n  missing_fields: missing.length > 0 ? missing.join(', ') : 'none'\n}}];"
+        "jsCode": "const fieldMap = [\n  ['Nationality', 'nationality'],\n  ['Age', 'age'],\n  ['Marital Status', 'marital status'],\n  ['Number of Children', 'number of children'],\n  ['Net Salary', 'net salary'],\n  ['Budget', 'budget'],\n  ['Timeline', 'timeline'],\n  ['Mortgage Status', 'mortgage status'],\n  ['Property Type', 'property type'],\n  ['Preferred Areas', 'preferred areas']\n];\n\nfunction isEmpty(val) {\n  return val === null || val === undefined || val === '' || val === 0;\n}\n\n// Airtable may return multiple records for one phone (duplicates).\n// Pick the most complete one (most filled qualifying fields).\nconst candidates = $input.all().map(i => i.json).filter(r => r && r.id);\n\nlet customer = null;\nlet bestScore = -1;\nfor (const rec of candidates) {\n  let score = 0;\n  for (const [field] of fieldMap) {\n    if (!isEmpty(rec[field])) score++;\n  }\n  if (score > bestScore) { bestScore = score; customer = rec; }\n}\n\nif (!customer) {\n  return [{ json: { dynamic_variables: {\n    customer_first_name: 'there',\n    is_returning_caller: 'no',\n    known_data: 'none',\n    missing_fields: fieldMap.map(f => f[1]).join(', ')\n  }}}];\n}\n\nconst missing = [];\nconst known = [];\nfor (const [field, label] of fieldMap) {\n  if (isEmpty(customer[field])) {\n    missing.push(label);\n  } else {\n    known.push(`${label}: ${customer[field]}`);\n  }\n}\n\nconst firstName =\n  customer['First Name'] ||\n  (customer['Name'] ? customer['Name'].split(' ')[0] : '') ||\n  'there';\n\nreturn [{ json: { dynamic_variables: {\n  customer_first_name: firstName,\n  is_returning_caller: 'yes',\n  known_data: known.length > 0 ? known.join(', ') : 'none',\n  missing_fields: missing.length > 0 ? missing.join(', ') : 'none'\n}}}];"
       }
     },
     {
