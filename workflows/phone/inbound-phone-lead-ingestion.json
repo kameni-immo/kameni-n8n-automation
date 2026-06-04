@@ -169,7 +169,6 @@
           "value": {
             "Phone": "={{ $('Build Transcript').item.json.phone }}",
             "Conversation ID": "={{ $('Match Conversation').item.json.conversationId }}",
-            "Original Source": "Inbound Call",
             "Last Contact Channel": "Inbound Call",
             "Pipeline Stage": "Qualifying",
             "Environment": "dev",
@@ -187,7 +186,7 @@
             "Preferred Areas": "={{ $json.output.preferredAreas }}",
             "Qualified Lead": "={{ $json.output.qualifiedLead }}"
           },
-          "matchingColumns": ["Conversation ID"],
+          "matchingColumns": ["Phone"],
           "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
