@@ -58,7 +58,9 @@ Important inbound rules:
 - Match on the Airtable record id, NOT Phone (Airtable upsert cannot merge on a Phone-type field).
 - Existing data is never overwritten by fresh extraction; the extractor can hallucinate
   when the transcript has no answers (returning caller asked nothing), so merge keeps existing values.
-- Original Source and Pipeline Stage are NOT written on inbound update (preserved from first contact).
+- Original Source and Pipeline Stage are preserved for existing callers (the merge writes
+  back their current value) and defaulted for brand-new callers (Original Source = "Inbound Call",
+  Pipeline Stage = "Qualifying"). A returning lead is never downgraded.
 - Last Contact Channel IS set to "Inbound Call" on every inbound call.
 - Telnyx dynamic_variables_webhook_timeout_ms is 5000ms (Airtable lookup takes ~1.8s).
 ```
