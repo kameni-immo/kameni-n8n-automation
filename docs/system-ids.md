@@ -72,9 +72,10 @@ Important:
 
 | Purpose | Name | ID / Value | Notes |
 |---|---|---|---|
-| AI phone assistant | Financing Phone Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Use for testing only |
+| Outbound AI assistant | Phone Qualification Agent - DEV | assistant-3896d294-b584-483f-806f-09de4c94c8ca | Used by outbound call workflow (Phone Lead Ingestion - DEV) |
+| Inbound AI assistant | Phone Inbound Qualification Agent - DEV | assistant-148bc1e6-764c-4070-a4c0-94875e8d169a | Used for inbound calls; set dynamic_variables_webhook_url here |
 | Outbound caller number | Telnyx DEV number | +12018841021 | Used as From number for outbound calls |
-| Dynamic vars webhook | Phone Dynamic Vars - DEV (n8n) | https://n8n.srv1293983.hstgr.cloud/webhook/phone-dynamic-vars-dev | Set as dynamic_variables_webhook_url in the DEV assistant (Telnyx portal) |
+| Dynamic vars webhook | Phone Dynamic Vars - DEV (n8n) | https://n8n.srv1293983.hstgr.cloud/webhook/phone-dynamic-vars-dev | Set as dynamic_variables_webhook_url in the inbound DEV assistant (Telnyx portal) |
 
 ### PROD
 
