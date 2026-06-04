@@ -10,10 +10,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -2144,
-        96
-      ],
+      "position": [-2144, 96],
       "id": "9031ac75-d4c9-43fe-8bea-ea33d848c773",
       "name": "Webhook",
       "webhookId": "6c719523-cfc2-45af-8b0a-9e45417e2e4b",
@@ -29,233 +26,62 @@
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        -1920,
-        96
-      ]
+      "position": [-1920, 96]
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "05ac8dcd-02a3-44b0-99cd-a46f4d6956f4",
-              "name": "event",
-              "value": "={{ $json.body.event }}",
-              "type": "string"
-            },
-            {
-              "id": "8efcf82a-8753-4e7d-a4c4-90004014802e",
-              "name": "session",
-              "value": "={{ $json.body.session }}",
-              "type": "string"
-            },
-            {
-              "id": "7a3a3807-78f3-4cf6-ac97-9bf6edf262d1",
-              "name": "message_id",
-              "value": "={{ $json.body.payload.id }}",
-              "type": "string"
-            },
-            {
-              "id": "16a4c3c7-0e63-4f5c-b995-4df29f4800fd",
-              "name": "from",
-              "value": "={{ $json.body.payload.from }}",
-              "type": "string"
-            },
-            {
-              "id": "7a5f4745-b439-4df6-a0be-1ae4de2de639",
-              "name": "to",
-              "value": "={{ $json.body.payload.to }}",
-              "type": "string"
-            },
-            {
-              "id": "63450af1-0c2b-47a3-a8a0-999ff6c230e8",
-              "name": "source",
-              "value": "={{ $json.body.payload.source }}",
-              "type": "string"
-            },
-            {
-              "id": "d13e4a3b-25dc-48b0-b293-ecf34988def3",
-              "name": "body",
-              "value": "={{ $json.body.payload.body }}",
-              "type": "string"
-            },
-            {
-              "id": "2a66d848-5413-466f-bd78-877213c197d7",
-              "name": "hasMedia",
-              "value": "={{ $json.body.payload.hasMedia }}",
-              "type": "boolean"
-            },
-            {
-              "id": "25be31ca-8cf0-4ee4-aff0-794067288336",
-              "name": "notifyName",
-              "value": "={{ $json.body.payload._data.notifyName }}",
-              "type": "string"
-            },
-            {
-              "id": "56bb6cbc-af68-44fd-b51a-a799d8b71524",
-              "name": "fromMe",
-              "value": "={{ $json.body.payload.fromMe }}",
-              "type": "boolean"
-            }
-          ]
-        },
+        "url": "=https://waha.kameni-immo.cloud/api/default/lids/{{ $('Data').item.json.from.replace('@', '%40') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
         "options": {}
       },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1696,
-        96
-      ],
-      "id": "5fed5640-3add-41b8-a8e2-59a527dfd76b",
-      "name": "Data"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "bcdf88d7-b57e-4b80-946c-a83289de0d84",
-              "leftValue": "={{ $('Data').item.json.fromMe == true|| $('Data').item.json.to.includes(\"@g.us\") }}",
-              "rightValue": "true",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1472,
-        96
-      ],
-      "id": "f782f05d-c5ed-4bcb-87a5-fceb6fe7b332",
-      "name": "Ignore own messages / groups?"
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $('Build AI Context from Airtable').item.json.userMessage }}\n\n[INTERNAL CONTEXT - do not share with the user]\n\nWhatsApp phone ID:\n{{ $('Build AI Context from Airtable').item.json.phone }}\n\nCustomer already exists in Airtable:\n{{ $('Build AI Context from Airtable').item.json.customerExists }}\n\nAirtable record ID:\n{{ $('Build AI Context from Airtable').item.json.airtableRecordId }}\n\nExisting Airtable data:\n{{ JSON.stringify($('Build AI Context from Airtable').item.json.existingData) }}\n\nMissing fields:\n{{ JSON.stringify($('Build AI Context from Airtable').item.json.missingFields) }}\n\nFirst missing field:\n{{ $('Build AI Context from Airtable').item.json.firstMissingField }}\n\nRules for existing Airtable data:\n- If customer already exists, keep all existing filled values.\n- Ask ONLY for the first missing field.\n- Do not ask again for already filled fields.\n- If the customer clearly wants to change/update an existing value, update that value.\n- Always use the WhatsApp phone ID above as leadData.phone.",
-        "options": {
-          "systemMessage": "You are Kameni Immobilien, a professional WhatsApp lead qualification agent.\n\nYour job is to qualify potential home buyers by asking missing questions ONE at a time.\n\nLANGUAGE:\n* Always detect the user's language and respond in the SAME language.\n* Use the user's first name after you have it.\n* Keep messages friendly, concise, and natural.\n\nVERY IMPORTANT LANGUAGE / DATABASE RULE:\n* Speak to the customer in their language.\n* But leadData values must always use the fixed English Airtable values.\n* Do NOT save translated values like \"Célibataire\", \"Appartement\", \"Besoin d’aide\", \"Wohnung\", etc.\n* Convert the customer’s answer into the correct fixed English value before saving it in leadData.\n\nFIELDS TO COLLECT:\n1. fullName -  full legal name exactly as written on ID/passport. Explain that this avoids mistakes later in financing documents.\n3.firstName - first name used for friendly conversation\n3. email\n4. nationality\n5. age\n6. maritalStatus\n7. numberChildren\n8. netSalary in EUR\n9. budget in EUR\n10. timeline\n11. mortgageStatus\n12. propertyType\n13. preferredAreas\n\nFIXED AIRTABLE VALUES TO USE IN leadData:\n\nmaritalStatus:\n* Single\n* Married\n* Divorced\n* Widowed\n* Unknown\n\ntimeline:\n* 0-3 months\n* 3-6 months\n* 6-12 months\n* 12+ months\n* Just exploring\n\nmortgageStatus:\n* No mortgage yet - needs help\n* Mortgage in principle\n* Mortgage approved\n* Already has mortgage\n* Unknown\n\npropertyType:\n* Apartment\n* House\n* Detached house\n* Semi-detached house\n* Plot of land\n* Commercial\n* Other\n\nEXAMPLES:\n* If customer says \"célibataire\", save maritalStatus as \"Single\".\n* If customer says \"marié\", save maritalStatus as \"Married\".\n* If customer says \"geschieden\", save maritalStatus as \"Divorced\".\n* If customer says \"Wohnung\", save propertyType as \"Apartment\".\n* If customer says \"appartement\", save propertyType as \"Apartment\".\n* If customer says \"6 à 12 mois\", save timeline as \"6-12 months\".\n* If customer says \"besoin d’aide\", save mortgageStatus as \"No mortgage yet - needs help\".\n*When asking for fullName, say:“Please provide your full legal name exactly as written on your ID/passport. This helps us avoid mistakes later in the financing documents.”\n\nVERY IMPORTANT WITH EXISTING AIRTABLE DATA:\n* The internal context may contain existing Airtable data.\n* If a field is already filled, do NOT ask it again.\n* Ask only the first missing field from the missingFields list.\n* If missingFields is empty, thank the customer and say an agent will contact them shortly.\n* If the user asks to change an existing value, update it in leadData.\n* Always preserve existing filled values in leadData unless the user clearly changes them.\n\nCONVERSATION RULES:\n* Ask only ONE question per message.\n* If an answer is unclear, ask a short clarification.\n* Do not mention Airtable, database, JSON, tools, or internal context to the customer.\n\nVERY IMPORTANT OUTPUT FORMAT:\nReturn ONLY valid JSON. No markdown. No extra text.\n\nUse exactly this structure every time:\n{\n  \"replyText\": \"The WhatsApp message to send to the customer\",\n  \"leadComplete\": false,\n  \"leadData\": {\n    \"phone\": \"WhatsApp ID from internal context\",\n    \"fullName\": \"\",\n    \"firstName\": \"\",\n    \"email\": \"\",\n    \"nationality\": \"\",\n    \"age\": 0,\n    \"maritalStatus\": \"Unknown\",\n    \"numberChildren\": 0,\n    \"netSalary\": 0,\n    \"budget\": 0,\n    \"timeline\": \"Just exploring\",\n    \"mortgageStatus\": \"Unknown\",\n    \"propertyType\": \"Other\",\n    \"preferredAreas\": \"\",\n    \"qualifiedLead\": false\n  }\n}\n\nSet leadComplete to true ONLY when all required lead fields are known and ready to save.\n\nSet qualifiedLead to true if the customer has:\n* a clear timeline within 12 months,\n* reasonable budget/income,\n* and clarity on mortgage status.\n\nOtherwise set qualifiedLead to false."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        -800,
-        96
-      ],
-      "id": "8ef3eaa7-2b97-48d4-a316-8728637f4b4e",
-      "name": "AI Agent"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-4.1-mini"
-        },
-        "builtInTools": {},
-        "options": {
-          "temperature": 0.2
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        -864,
-        320
-      ],
-      "id": "a4f76e1a-b643-4819-9e99-3d967fb932ee",
-      "name": "OpenAI Chat Model",
+      "id": "aa11bb22-cc33-dd44-ee55-ff6600000001",
+      "name": "Resolve LID to Phone",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-1248, 96],
       "credentials": {
-        "openAiApi": {
-          "id": "3jDEORaDQgY0e79T",
-          "name": "OpenAi account 2"
+        "httpHeaderAuth": {
+          "id": "jxSR8PrwNBshkfVA",
+          "name": "WAHA API Key"
         }
-      }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "=kameni-whatsapp-{{ $('Data').item.json.from }}",
-        "contextWindowLength": 30
+        "jsCode": "const data = $('Data').item.json;\nlet resolvedPhone = data.from;\n\ntry {\n  const lidResponse = $json || {};\n  const phone = lidResponse.phoneNumber || lidResponse.phone || lidResponse.number || lidResponse.pn || '';\n  if (phone && String(phone).trim() !== '') {\n    let normalized = String(phone).replace(/\\s+/g, '').replace(/[^\\+\\d]/g, '');\n    if (!normalized.startsWith('+')) normalized = '+' + normalized;\n    if (normalized.length >= 7) resolvedPhone = normalized;\n  }\n} catch (e) {}\n\nreturn [{ json: { resolvedPhone, isLidResolved: resolvedPhone !== data.from } }];"
       },
-      "id": "3d8c3282-3435-4640-b6fd-70babd24d082",
-      "name": "Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
-      "typeVersion": 1.3,
-      "position": [
-        -672,
-        320
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "H77ONZhZe9cGzqGZ",
-          "name": "Postgres memory account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Get the raw text output from the AI Agent\nconst raw = $json.output ?? '';\n\n// Get the context prepared by \"Build AI Context from Airtable\"\nconst ctx = $('Build AI Context from Airtable').item.json;\n\n// Get existing customer data from Airtable, if available\nconst existing = ctx.existingData || {};\n\n\n// Try to read JSON from the AI response\nfunction extractJson(text) {\n  try {\n    return JSON.parse(text);\n  } catch (e) {\n    // If AI added extra text, try to find only the JSON part\n    const match = String(text).match(/\\{[\\s\\S]*\\}/);\n    if (match) {\n      try {\n        return JSON.parse(match[0]);\n      } catch (e2) {}\n    }\n  }\n\n  return null;\n}\n\n\n// Convert values like \"2.000 €\" or \"2000\" into a number\nfunction toNumber(value) {\n  if (value === null || value === undefined || value === '') return 0;\n\n  return Number(\n    String(value)\n      .replace(/[^\\d,.-]/g, '') // remove currency symbols and text\n      .replace(',', '.')        // change comma to dot\n  ) || 0;\n}\n\n\n// For text fields:\n// Use the new AI value first.\n// If missing, keep the old Airtable value.\n// If both are missing, use fallback.\nfunction textValue(newValue, oldValue, fallback = '') {\n  if (newValue !== undefined && newValue !== null && String(newValue).trim() !== '') {\n    return String(newValue).trim();\n  }\n\n  if (oldValue !== undefined && oldValue !== null && String(oldValue).trim() !== '') {\n    return String(oldValue).trim();\n  }\n\n  return fallback;\n}\n\n\n// For number fields:\n// Use the new AI value first.\n// If missing, keep the old Airtable value.\n// If both are missing, use fallback.\nfunction numberValue(newValue, oldValue, fallback = 0) {\n  const n = toNumber(newValue);\n  if (n > 0) return n;\n\n  const o = toNumber(oldValue);\n  if (o > 0) return o;\n\n  return fallback;\n}\n\n\n// Parse the AI output\nconst parsed = extractJson(raw);\n\n// Get leadData from the AI response\nconst aiLead = parsed?.leadData || {};\n\n\n// Build final lead data\n// Important: this keeps existing Airtable values if AI does not send them again\nconst leadData = {\n  phone: textValue(aiLead.phone, ctx.phone, ''),\n\n  // New fields\n  fullName: textValue(aiLead.fullName, existing.fullName, ''),\n  email: textValue(aiLead.email, existing.email, ''),\n\n  // Existing fields\n  firstName: textValue(aiLead.firstName, existing.firstName, ''),\n  nationality: textValue(aiLead.nationality, existing.nationality, ''),\n  age: numberValue(aiLead.age, existing.age, 0),\n  maritalStatus: textValue(aiLead.maritalStatus, existing.maritalStatus, 'Unknown'),\n\n  // Number of children can be 0, so we handle it separately\n  numberChildren:\n    aiLead.numberChildren !== undefined &&\n    aiLead.numberChildren !== null &&\n    String(aiLead.numberChildren).trim() !== ''\n      ? toNumber(aiLead.numberChildren)\n      : (\n          existing.numberChildren !== undefined &&\n          existing.numberChildren !== null &&\n          String(existing.numberChildren).trim() !== ''\n            ? toNumber(existing.numberChildren)\n            : 0\n        ),\n\n  netSalary: numberValue(aiLead.netSalary, existing.netSalary, 0),\n  budget: numberValue(aiLead.budget, existing.budget, 0),\n  timeline: textValue(aiLead.timeline, existing.timeline, 'Just exploring'),\n  mortgageStatus: textValue(aiLead.mortgageStatus, existing.mortgageStatus, 'Unknown'),\n  propertyType: textValue(aiLead.propertyType, existing.propertyType, 'Other'),\n  preferredAreas: textValue(aiLead.preferredAreas, existing.preferredAreas, ''),\n\n  // Keep qualifiedLead true if AI says true OR it was already true in Airtable\n  qualifiedLead:\n    aiLead.qualifiedLead === true ||\n    aiLead.qualifiedLead === 'true' ||\n    existing.qualifiedLead === true,\n};\n\n\n// These text fields must be filled before the lead is complete\nconst requiredTextFields = [\n  'phone',\n  'fullName',\n  'firstName',\n  'email',\n  'nationality',\n  'maritalStatus',\n  'timeline',\n  'mortgageStatus',\n  'propertyType',\n  'preferredAreas',\n];\n\n\n// Check if all required text fields are filled\nconst textFieldsComplete = requiredTextFields.every((field) => {\n  return String(leadData[field] ?? '').trim() !== '';\n});\n\n\n// Check if important number fields are complete\nconst numberFieldsComplete =\n  leadData.age > 0 &&\n  leadData.netSalary > 0 &&\n  leadData.budget > 0 &&\n  leadData.numberChildren >= 0;\n\n\n// Make sure important select fields are not default/unknown values\nconst meaningfulSelects =\n  leadData.maritalStatus !== 'Unknown' &&\n  leadData.mortgageStatus !== 'Unknown' &&\n  leadData.propertyType !== 'Other';\n\n\n// Lead is complete only if:\n// 1. AI says leadComplete = true\n// 2. all required text fields are complete\n// 3. number fields are complete\n// 4. select fields have meaningful values\nconst leadComplete =\n  Boolean(parsed?.leadComplete) &&\n  textFieldsComplete &&\n  numberFieldsComplete &&\n  meaningfulSelects;\n\n\n// Send clean data to the next n8n nodes\nreturn [{\n  json: {\n    replyText: parsed?.replyText || raw || 'Danke für Ihre Nachricht.',\n    leadComplete,\n\n    // Needed if we update an existing Airtable record\n    airtableRecordId: existing.recordId || '',\n\n    // Shows if this customer already exists in Airtable\n    customerExists: ctx.customerExists || false,\n\n    // Final cleaned lead data\n    ...leadData,\n  },\n}];"
-      },
+      "id": "aa11bb22-cc33-dd44-ee55-ff6600000002",
+      "name": "Set Resolved Phone",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -448,
-        96
-      ],
-      "id": "0ff0320c-f985-4075-9528-6045d12d75f8",
-      "name": "Parse AI JSON / Lead Data"
+      "position": [-1024, 96],
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "615e75fe-dd09-4da3-8978-1ac50bd6830d",
-              "leftValue": "={{ $json.leadComplete }}",
-              "rightValue": "true",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {"__rl": true, "value": "appn65GylpcWvByIP", "mode": "list", "cachedResultName": "Finanzierung", "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP"},
+        "table": {"__rl": true, "value": "tblbtkyGl7pSOpClC", "mode": "list", "cachedResultName": "customers", "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"},
+        "filterByFormula": "={Phone} = '{{ $(\"Set Resolved Phone\").item.json.resolvedPhone }}'",
+        "returnAll": false,
+        "limit": 1,
         "options": {}
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -224,
-        96
-      ],
-      "id": "ce7979a7-dcb7-43d6-8a53-0333b838b878",
-      "name": "IF Lead Complete?"
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [-800, 96],
+      "id": "7b9f5883-202a-40d3-b3db-4f95c5ce1cd4",
+      "name": "Search customer by Phone",
+      "alwaysOutputData": true,
+      "credentials": {"airtableOAuth2Api": {"id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2"}},
+      "continueOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -267,644 +93,54 @@
           "cachedResultName": "Save Qualified Lead - Sub - DEV"
         },
         "workflowInputs": {
-          "mappingMode": "defineBelow",
+          "mappingMode": "autoMapInputData",
           "value": {},
           "matchingColumns": [],
           "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
-        "options": {
-          "waitForSubWorkflow": false
-        }
+        "options": {"waitForSubWorkflow": false}
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
-      "position": [
-        0,
-        0
-      ],
+      "position": [448, 0],
       "id": "164c3d92-2c4d-489b-bb66-046e231453a5",
       "name": "Save Qualified Lead - Sub"
     },
     {
-      "parameters": {
-        "resource": "Chatting",
-        "operation": "Send Text",
-        "session": "=default",
-        "chatId": "={{ $('Data').item.json.from }}",
-        "reply_to": "=",
-        "text": "={{ $('Parse AI JSON / Lead Data').item.json.replyText }}",
-        "requestOptions": {}
-      },
-      "type": "n8n-nodes-waha.WAHA",
-      "typeVersion": 202411,
-      "position": [
-        448,
-        192
-      ],
-      "id": "cb733755-5766-4cb3-b341-cc957bae3aaf",
-      "name": "Send WhatsApp - Next Question",
-      "credentials": {
-        "wahaApi": {
-          "id": "FkdOyqhhdQ01p2E8",
-          "name": "WAHA account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "Chatting",
-        "operation": "Send Text",
-        "session": "=default",
-        "chatId": "={{ $('Data').item.json.from }}",
-        "reply_to": "=",
-        "text": "={{ $('Parse AI JSON / Lead Data').item.json.replyText }}",
-        "requestOptions": {}
-      },
-      "type": "n8n-nodes-waha.WAHA",
-      "typeVersion": 202411,
-      "position": [
-        672,
-        0
-      ],
-      "id": "12bc6e6e-a37c-40b1-8928-f71c5b6e6f41",
-      "name": "Send WhatsApp - Final Reply",
-      "credentials": {
-        "wahaApi": {
-          "id": "FkdOyqhhdQ01p2E8",
-          "name": "WAHA account"
-        }
-      }
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        448,
-        0
-      ],
+      "parameters": {"amount": 5},
+      "type": "n8n-nodes-base.wait", "typeVersion": 1.1,
+      "position": [896, 0],
       "id": "2d59d56c-b3dc-4b99-bd59-c59ff7baa040",
       "name": "Wait 5 seconds - Send Final  Reply",
-      "webhookId": "b65cb00b-6b0f-4998-a258-a724b7b9c9ae"
+      "webhookId": "c7e3f9a1-2b4d-4e6f-8a0b-1c2d3e4f5a6b"
     },
     {
-      "parameters": {
-        "resource": "Chatting",
-        "operation": "Start Typing",
-        "session": "={{ $('Data').item.json.session }}",
-        "chatId": "={{ $('Data').item.json.from }}",
-        "requestOptions": {}
-      },
-      "type": "n8n-nodes-waha.WAHA",
-      "typeVersion": 202411,
-      "position": [
-        224,
-        0
-      ],
-      "id": "98ad0bfa-fda2-49d7-8e8e-963221c3b848",
-      "name": "Start Typing - Final Reply",
-      "credentials": {
-        "wahaApi": {
-          "id": "FkdOyqhhdQ01p2E8",
-          "name": "WAHA account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "authentication": "airtableOAuth2Api",
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appn65GylpcWvByIP",
-          "mode": "list",
-          "cachedResultName": "Finanzierung",
-          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblbtkyGl7pSOpClC",
-          "mode": "list",
-          "cachedResultName": "customers",
-          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
-        },
-        "filterByFormula": "={Phone} = '{{ $(\"Data\").item.json.from }}'",
-        "returnAll": false,
-        "limit": 1,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        -1248,
-        96
-      ],
-      "id": "7b9f5883-202a-40d3-b3db-4f95c5ce1cd4",
-      "name": "Search customer by Phone",
-      "alwaysOutputData": true,
-      "credentials": {
-        "airtableOAuth2Api": {
-          "id": "Q4E2GVpHjyxqL1oI",
-          "name": "Airtable Demo Test OAuth2"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Get the current WhatsApp message data from the \"Data\" node\nconst incoming = $('Data').item.json;\n\n// Get the Airtable record.\n// If no Airtable record was found, use an empty object.\nconst record = $json || {};\n\n\n// Helper function:\n// Take the first value that is not empty.\nfunction pick(...values) {\n  for (const value of values) {\n    if (value !== undefined && value !== null && String(value).trim() !== '') {\n      return value;\n    }\n  }\n  return '';\n}\n\n\n// Helper function:\n// Convert values like \"2.000 €\" or \"2000\" into a real number.\nfunction toNumber(value) {\n  if (value === null || value === undefined || value === '') return 0;\n\n  return Number(\n    String(value)\n      .replace(/[^\\d,.-]/g, '') // remove currency symbols and text\n      .replace(',', '.')        // convert comma to dot\n  ) || 0;\n}\n\n\n// Helper function:\n// Check if a field already has a useful value.\nfunction isFilled(value, field) {\n\n  // These fields must be bigger than 0\n  if (field === 'age' || field === 'netSalary' || field === 'budget') {\n    return toNumber(value) > 0;\n  }\n\n  // Number of children can be 0, so empty check is enough\n  if (field === 'numberChildren') {\n    return value !== undefined && value !== null && String(value).trim() !== '';\n  }\n\n  // These fields should not stay as default values\n  if (\n    field === 'maritalStatus' ||\n    field === 'timeline' ||\n    field === 'mortgageStatus' ||\n    field === 'propertyType'\n  ) {\n    const v = String(value || '').trim();\n\n    return (\n      v !== '' &&\n      v !== 'Unknown' &&\n      !(field === 'timeline' && v === 'Just exploring') &&\n      !(field === 'propertyType' && v === 'Other')\n    );\n  }\n\n  // For normal text fields, check if text exists\n  return String(value || '').trim() !== '';\n}\n\n\n// Check if Airtable already returned an existing customer\nconst customerExists = Boolean(\n  record.id ||\n  record.Phone ||\n  record.Email ||\n  record['Full Name'] ||\n  record['First Name'] ||\n  record.Name\n);\n\n\n// Build one clean customer object for the AI Agent\nconst existingData = {\n  // Airtable record ID, needed later for updating existing records\n  recordId: record.id || '',\n\n  // Use Airtable phone if available, otherwise use WhatsApp sender ID\n  phone: pick(record.Phone, incoming.from),\n\n  // New fields\n  fullName: pick(record['Full Name'], record.Name),\n  email: pick(record.Email),\n\n  // Existing fields\n  firstName: pick(record['First Name']),\n  nationality: pick(record.Nationality),\n  age: toNumber(record.Age),\n  maritalStatus: pick(record['Marital Status']),\n  numberChildren: record['Number of Children'] ?? '',\n  netSalary: toNumber(record['Net Salary']),\n  budget: toNumber(record.Budget),\n  timeline: pick(record.Timeline),\n  mortgageStatus: pick(record['Mortgage Status']),\n  propertyType: pick(record['Property Type']),\n  preferredAreas: pick(record['Preferred Areas']),\n  qualifiedLead: record['Qualified Lead'] === true,\n};\n\n\n// This is the order in which the AI should ask questions\nconst fieldOrder = [\n  'fullName',\n  'firstName',\n  'email',\n  'nationality',\n  'age',\n  'maritalStatus',\n  'numberChildren',\n  'netSalary',\n  'budget',\n  'timeline',\n  'mortgageStatus',\n  'propertyType',\n  'preferredAreas'\n];\n\n\n// Create a list of fields that are still missing\nconst missingFields = fieldOrder.filter((field) => {\n  return !isFilled(existingData[field], field);\n});\n\n\n// Send the prepared context to the AI Agent\nreturn [{\n  json: {\n    // What the user just wrote on WhatsApp\n    userMessage: incoming.body || '',\n\n    // WhatsApp ID of the customer\n    phone: incoming.from || '',\n\n    // WAHA session\n    session: incoming.session || 'default',\n\n    // WhatsApp display name, if available\n    notifyName: incoming.notifyName || '',\n\n    // True if customer already exists in Airtable\n    customerExists,\n\n    // All known customer data\n    existingData,\n\n    // All fields still missing\n    missingFields,\n\n    // The next field the AI should ask about\n    firstMissingField: missingFields[0] || '',\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1024,
-        96
-      ],
-      "id": "8952e737-f468-4cb6-9daa-7aa7d03eee78",
-      "name": "Build AI Context from Airtable"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        224,
-        192
-      ],
+      "parameters": {"amount": 5},
+      "type": "n8n-nodes-base.wait", "typeVersion": 1.1,
+      "position": [672, 192],
       "id": "30c3648e-e1df-44ac-90f9-7833a136249b",
       "name": "Wait 5 seconds - Next Question",
       "webhookId": "b65cb00b-6b0f-4998-a258-a724b7b9c9ae"
-    },
-    {
-      "parameters": {
-        "resource": "Chatting",
-        "operation": "Start Typing",
-        "session": "={{ $('Data').item.json.session }}",
-        "chatId": "={{ $('Data').item.json.from }}",
-        "requestOptions": {}
-      },
-      "type": "n8n-nodes-waha.WAHA",
-      "typeVersion": 202411,
-      "position": [
-        0,
-        192
-      ],
-      "id": "2566e40a-f051-4636-aab9-27cfd0edd6dd",
-      "name": "Start Typing - Next Question",
-      "credentials": {
-        "wahaApi": {
-          "id": "FkdOyqhhdQ01p2E8",
-          "name": "WAHA account"
-        }
-      }
     }
   ],
-  "pinData": {
-    "Webhook": [
-      {
-        "json": {
-          "headers": {
-            "host": "n8n.srv1293983.hstgr.cloud",
-            "user-agent": "WAHA/2026.2.2",
-            "content-length": "3619",
-            "accept": "application/json, text/plain, */*",
-            "accept-encoding": "gzip, compress, deflate, br",
-            "content-type": "application/json",
-            "x-forwarded-for": "172.18.0.1",
-            "x-forwarded-host": "n8n.srv1293983.hstgr.cloud",
-            "x-forwarded-port": "443",
-            "x-forwarded-proto": "https",
-            "x-forwarded-server": "120b3ebe3985",
-            "x-real-ip": "172.18.0.1",
-            "x-webhook-request-id": "jgsp1cmozqst5v",
-            "x-webhook-timestamp": "1778415716513"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "id": "evt_01kr8xcj51whq815ec6bmdrrkh",
-            "timestamp": 1778415716513,
-            "event": "message",
-            "session": "default",
-            "metadata": {},
-            "me": {
-              "id": "4915168957273@c.us",
-              "pushName": "Gerard"
-            },
-            "payload": {
-              "id": "false_175496860028963@lid_AC0CC805834713C69D79387B512DDDAE",
-              "timestamp": 1778415716,
-              "from": "175496860028963@lid",
-              "fromMe": false,
-              "source": "app",
-              "to": "4915168957273@c.us",
-              "body": "Munich en Allemagne",
-              "hasMedia": false,
-              "media": null,
-              "ack": 1,
-              "ackName": "SERVER",
-              "location": null,
-              "vCards": [],
-              "_data": {
-                "id": {
-                  "fromMe": false,
-                  "remote": "175496860028963@lid",
-                  "id": "AC0CC805834713C69D79387B512DDDAE",
-                  "_serialized": "false_175496860028963@lid_AC0CC805834713C69D79387B512DDDAE"
-                },
-                "viewed": false,
-                "body": "Munich en Allemagne",
-                "type": "chat",
-                "t": 1778415716,
-                "clientReceivedTsMillis": 1778415716473,
-                "serverStoreTimeMicros": 1778415716457590,
-                "notifyName": "Gérard Njiti",
-                "from": "175496860028963@lid",
-                "to": "4915168957273@c.us",
-                "ack": 1,
-                "invis": false,
-                "isNewMsg": true,
-                "star": false,
-                "kicNotified": false,
-                "recvFresh": true,
-                "isFromTemplate": false,
-                "isAdsMedia": false,
-                "pollInvalidated": false,
-                "isSentCagPollCreation": false,
-                "latestEditMsgKey": null,
-                "latestEditSenderTimestampMs": null,
-                "mentionedJidList": [],
-                "groupMentions": [],
-                "isEventCanceled": false,
-                "eventInvalidated": false,
-                "isVcardOverMmsDocument": false,
-                "isForwarded": false,
-                "isQuestion": false,
-                "isSpoiler": false,
-                "questionReplyQuotedMessage": null,
-                "questionResponsesCount": 0,
-                "readQuestionResponsesCount": 0,
-                "forwardsCount": 0,
-                "hasReaction": false,
-                "newsletterAdminProfile": null,
-                "expiredTimestamp": null,
-                "viewMode": "VISIBLE",
-                "messageSecret": {
-                  "0": 126,
-                  "1": 67,
-                  "2": 69,
-                  "3": 113,
-                  "4": 214,
-                  "5": 67,
-                  "6": 171,
-                  "7": 152,
-                  "8": 213,
-                  "9": 124,
-                  "10": 191,
-                  "11": 217,
-                  "12": 65,
-                  "13": 185,
-                  "14": 226,
-                  "15": 212,
-                  "16": 60,
-                  "17": 20,
-                  "18": 32,
-                  "19": 104,
-                  "20": 186,
-                  "21": 28,
-                  "22": 52,
-                  "23": 89,
-                  "24": 232,
-                  "25": 86,
-                  "26": 103,
-                  "27": 59,
-                  "28": 173,
-                  "29": 110,
-                  "30": 90,
-                  "31": 226
-                },
-                "productHeaderImageRejected": false,
-                "lastPlaybackProgress": 0,
-                "isDynamicReplyButtonsMsg": false,
-                "isCarouselCard": false,
-                "parentMsgId": null,
-                "callSilenceReason": null,
-                "isVideoCall": false,
-                "callDuration": null,
-                "callCreator": null,
-                "callParticipants": null,
-                "isCallLink": null,
-                "callLinkToken": null,
-                "terminatedByDeviceSwitch": null,
-                "selfOtherDeviceConnected": null,
-                "bytesSent": null,
-                "bytesReceived": null,
-                "isMdHistoryMsg": false,
-                "stickerSentTs": 0,
-                "isAvatar": false,
-                "lastUpdateFromServerTs": 0,
-                "invokedBotWid": null,
-                "bizBotType": null,
-                "aiMediaCollectionInfo": null,
-                "expectedImageCount": null,
-                "expectedVideoCount": null,
-                "botResponseTargetId": null,
-                "botPluginType": null,
-                "botPluginReferenceIndex": null,
-                "botPluginSearchProvider": null,
-                "botPluginSearchUrl": null,
-                "botPluginSearchQuery": null,
-                "botPluginMaybeParent": false,
-                "botReelPluginThumbnailCdnUrl": null,
-                "botMessageDisclaimerText": null,
-                "botSessionTransparencyType": null,
-                "botMsgBodyType": null,
-                "botModeSelection": null,
-                "botModeOverride": null,
-                "reportingTokenInfo": {
-                  "stanzaTs": 1778415716,
-                  "reportingToken": {
-                    "0": 172,
-                    "1": 80,
-                    "2": 130,
-                    "3": 151,
-                    "4": 106,
-                    "5": 64,
-                    "6": 99,
-                    "7": 182,
-                    "8": 76,
-                    "9": 186,
-                    "10": 197,
-                    "11": 186,
-                    "12": 183,
-                    "13": 54,
-                    "14": 222,
-                    "15": 199
-                  },
-                  "version": 2,
-                  "reportingTag": {
-                    "0": 1,
-                    "1": 18,
-                    "2": 25,
-                    "3": 149,
-                    "4": 199,
-                    "5": 97,
-                    "6": 11,
-                    "7": 61,
-                    "8": 47,
-                    "9": 208,
-                    "10": 134,
-                    "11": 39,
-                    "12": 108,
-                    "13": 122,
-                    "14": 30,
-                    "15": 135,
-                    "16": 246,
-                    "17": 216,
-                    "18": 87,
-                    "19": 168
-                  }
-                },
-                "requiresDirectConnection": null,
-                "bizContentPlaceholderType": null,
-                "hostedBizEncStateMismatch": false,
-                "senderOrRecipientAccountTypeHosted": false,
-                "placeholderCreatedWhenAccountIsHosted": false,
-                "groupHistoryBundleMessageKey": null,
-                "groupHistoryBundleMetadata": null,
-                "groupHistoryIndividualMessageInfo": null,
-                "nonJidMentions": null,
-                "links": []
-              }
-            },
-            "engine": "WEBJS",
-            "environment": {
-              "version": "2026.2.2",
-              "engine": "WEBJS",
-              "tier": "CORE",
-              "browser": "/usr/bin/chromium",
-              "platform": "linux/x64",
-              "worker": {
-                "id": null
-              }
-            }
-          },
-          "webhookUrl": "https://n8n.srv1293983.hstgr.cloud/webhook/webhook-new",
-          "executionMode": "production"
-        },
-        "pairedItem": {
-          "item": 0
-        }
-      }
-    ]
-  },
   "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Respond to Webhook": {
-      "main": [
-        [
-          {
-            "node": "Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Data": {
-      "main": [
-        [
-          {
-            "node": "Ignore own messages / groups?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ignore own messages / groups?": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Search customer by Phone",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Parse AI JSON / Lead Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse AI JSON / Lead Data": {
-      "main": [
-        [
-          {
-            "node": "IF Lead Complete?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Lead Complete?": {
-      "main": [
-        [
-          {
-            "node": "Save Qualified Lead - Sub",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Start Typing - Next Question",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Qualified Lead - Sub": {
-      "main": [
-        [
-          {
-            "node": "Start Typing - Final Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait 5 seconds - Send Final  Reply": {
-      "main": [
-        [
-          {
-            "node": "Send WhatsApp - Final Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Start Typing - Final Reply": {
-      "main": [
-        [
-          {
-            "node": "Wait 5 seconds - Send Final  Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Search customer by Phone": {
-      "main": [
-        [
-          {
-            "node": "Build AI Context from Airtable",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build AI Context from Airtable": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait 5 seconds - Next Question": {
-      "main": [
-        [
-          {
-            "node": "Send WhatsApp - Next Question",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Start Typing - Next Question": {
-      "main": [
-        [
-          {
-            "node": "Wait 5 seconds - Next Question",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "Webhook": {"main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]},
+    "Resolve LID to Phone": {"main": [[{"node": "Set Resolved Phone", "type": "main", "index": 0}]]},
+    "Set Resolved Phone": {"main": [[{"node": "Search customer by Phone", "type": "main", "index": 0}]]},
+    "IF Lead Complete?": {"main": [[{"node": "Save Qualified Lead - Sub", "type": "main", "index": 0}], [{"node": "Start Typing - Next Question", "type": "main", "index": 0}]]},
+    "Save Qualified Lead - Sub": {"main": [[{"node": "Start Typing - Final Reply", "type": "main", "index": 0}]]},
+    "Wait 5 seconds - Send Final  Reply": {"main": [[{"node": "Send WhatsApp - Final Reply", "type": "main", "index": 0}]]},
+    "Wait 5 seconds - Next Question": {"main": [[{"node": "Send WhatsApp - Next Question", "type": "main", "index": 0}]]}
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false,
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "f9d8c30d-500c-4e6b-b2f5-ff3552b28c10",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ba6f9edb57102715831ce6e6dfce9425be2f2b57569b52adf33f4b6dc95e192d"
-  },
+  "active": true,
   "id": "1A68dQXM9FG7BGV66f0RG",
-  "tags": [
-    {
-      "updatedAt": "2026-05-14T16:50:11.415Z",
-      "createdAt": "2026-05-14T16:50:11.415Z",
-      "id": "ulb6kreE4SO3F1AV",
-      "name": "DEV"
-    }
-  ]
+  "tags": [{"id": "ulb6kreE4SO3F1AV", "name": "DEV"}]
 }
