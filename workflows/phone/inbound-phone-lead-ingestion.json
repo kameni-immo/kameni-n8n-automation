@@ -112,7 +112,7 @@
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [1352, 16],
+      "position": [1360, 16],
       "credentials": {
         "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" }
       }
@@ -125,7 +125,7 @@
       "name": "Structured Output Parser1",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
-      "position": [1480, 16]
+      "position": [1488, 16]
     },
     {
       "parameters": {
@@ -150,6 +150,49 @@
     {
       "parameters": {
         "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appn65GylpcWvByIP",
+          "mode": "list",
+          "cachedResultName": "Financing Automation - DEV"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblbtkyGl7pSOpClC",
+          "mode": "list",
+          "cachedResultName": "customers_dev",
+          "cachedResultUrl": "https://airtable.com/appn65GylpcWvByIP/tblbtkyGl7pSOpClC"
+        },
+        "filterByFormula": "={Phone} = '{{ $('Build Transcript').item.json.phone }}'",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "inb-search-001",
+      "name": "Search Existing",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1450, 120],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "airtableOAuth2Api": { "id": "Q4E2GVpHjyxqL1oI", "name": "Airtable Demo Test OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const extracted = $('Format Response').first().json.output || {};\nconst phone = $('Build Transcript').first().json.phone || '';\n\nfunction isEmpty(v) { return v === null || v === undefined || v === '' || v === 0; }\n\nconst fieldOrder = ['Nationality','Age','Marital Status','Number of Children','Net Salary','Budget','Timeline','Mortgage Status','Property Type','Preferred Areas'];\n\n// Pick most complete existing record (empty if brand-new caller)\nconst candidates = $input.all().map(i => i.json).filter(r => r && r.id);\nlet existing = null, best = -1;\nfor (const rec of candidates) {\n  let s = 0;\n  for (const f of fieldOrder) { if (!isEmpty(rec[f])) s++; }\n  if (s > best) { best = s; existing = rec; }\n}\n\nconst map = {\n  'Nationality':'nationality',\n  'Age':'age',\n  'Marital Status':'maritalStatus',\n  'Number of Children':'numberChildren',\n  'Net Salary':'netSalary',\n  'Budget':'budgetRange',\n  'Timeline':'timeline',\n  'Mortgage Status':'mortgageStatus',\n  'Property Type':'propertyType',\n  'Preferred Areas':'preferredAreas'\n};\n\n// Existing data wins; extraction only fills genuine blanks (prevents hallucination overwrite)\nconst fields = {};\nfor (const [airField, exKey] of Object.entries(map)) {\n  const existingVal = existing ? existing[airField] : undefined;\n  const exVal = extracted[exKey];\n  fields[airField] = !isEmpty(existingVal) ? existingVal : (isEmpty(exVal) ? '' : exVal);\n}\n\nconst qualifiedLead = (existing && existing['Qualified Lead'] === true) || extracted.qualifiedLead === true;\n\nreturn [{ json: {\n  recordId: existing ? existing.id : '',\n  found: Boolean(existing),\n  phone,\n  qualifiedLead,\n  fields\n}}];"
+      },
+      "id": "inb-merge-001",
+      "name": "Merge Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1550, 120]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
         "operation": "upsert",
         "base": {
           "__rl": true,
@@ -167,26 +210,25 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Phone": "={{ $('Build Transcript').item.json.phone }}",
-            "Conversation ID": "={{ $('Match Conversation').item.json.conversationId }}",
+            "id": "={{ $('Merge Lead Data').item.json.recordId }}",
+            "Phone": "={{ $('Merge Lead Data').item.json.phone }}",
             "Last Contact Channel": "Inbound Call",
-            "Pipeline Stage": "Qualifying",
-            "Environment": "dev",
             "Call Status": "Completed",
-            "Opt In": true,
-            "Nationality": "={{ $json.output.nationality }}",
-            "Age": "={{ $json.output.age }}",
-            "Marital Status": "={{ $json.output.maritalStatus }}",
-            "Number of Children": "={{ $json.output.numberChildren }}",
-            "Net Salary": "={{ $json.output.netSalary }}",
-            "Budget": "={{ $json.output.budgetRange }}",
-            "Timeline": "={{ $json.output.timeline }}",
-            "Mortgage Status": "={{ $json.output.mortgageStatus }}",
-            "Property Type": "={{ $json.output.propertyType }}",
-            "Preferred Areas": "={{ $json.output.preferredAreas }}",
-            "Qualified Lead": "={{ $json.output.qualifiedLead }}"
+            "Environment": "dev",
+            "Conversation ID": "={{ $('Match Conversation').item.json.conversationId }}",
+            "Nationality": "={{ $('Merge Lead Data').item.json.fields['Nationality'] }}",
+            "Age": "={{ $('Merge Lead Data').item.json.fields['Age'] }}",
+            "Marital Status": "={{ $('Merge Lead Data').item.json.fields['Marital Status'] }}",
+            "Number of Children": "={{ $('Merge Lead Data').item.json.fields['Number of Children'] }}",
+            "Net Salary": "={{ $('Merge Lead Data').item.json.fields['Net Salary'] }}",
+            "Budget": "={{ $('Merge Lead Data').item.json.fields['Budget'] }}",
+            "Timeline": "={{ $('Merge Lead Data').item.json.fields['Timeline'] }}",
+            "Mortgage Status": "={{ $('Merge Lead Data').item.json.fields['Mortgage Status'] }}",
+            "Property Type": "={{ $('Merge Lead Data').item.json.fields['Property Type'] }}",
+            "Preferred Areas": "={{ $('Merge Lead Data').item.json.fields['Preferred Areas'] }}",
+            "Qualified Lead": "={{ $('Merge Lead Data').item.json.qualifiedLead }}"
           },
-          "matchingColumns": ["Phone"],
+          "matchingColumns": ["id"],
           "schema": [],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -213,7 +255,7 @@
       "name": "OpenAI Chat Model2",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [1992, 16],
+      "position": [2000, 16],
       "credentials": {
         "openAiApi": { "id": "3jDEORaDQgY0e79T", "name": "OpenAi account 2" }
       }
@@ -221,7 +263,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Customer Details:\nNationality - {{ $('Format Response').item.json.output.nationality }}\nAge - {{ $('Format Response').item.json.output.age }}\nMarital Status - {{ $('Format Response').item.json.output.maritalStatus }}\nNumber of Children - {{ $('Format Response').item.json.output.numberChildren }}\nNet Salary - {{ $('Format Response').item.json.output.netSalary }}\nBudget - {{ $('Format Response').item.json.output.budgetRange }}\nTimeline - {{ $('Format Response').item.json.output.timeline }}\nMortgage Status - {{ $('Format Response').item.json.output.mortgageStatus }}\nProperty Type - {{ $('Format Response').item.json.output.propertyType }}\nPreferred Areas - {{ $('Format Response').item.json.output.preferredAreas }}",
+        "text": "=Customer Details:\nNationality - {{ $('Merge Lead Data').item.json.fields['Nationality'] }}\nAge - {{ $('Merge Lead Data').item.json.fields['Age'] }}\nMarital Status - {{ $('Merge Lead Data').item.json.fields['Marital Status'] }}\nNumber of Children - {{ $('Merge Lead Data').item.json.fields['Number of Children'] }}\nNet Salary - {{ $('Merge Lead Data').item.json.fields['Net Salary'] }}\nBudget - {{ $('Merge Lead Data').item.json.fields['Budget'] }}\nTimeline - {{ $('Merge Lead Data').item.json.fields['Timeline'] }}\nMortgage Status - {{ $('Merge Lead Data').item.json.fields['Mortgage Status'] }}\nProperty Type - {{ $('Merge Lead Data').item.json.fields['Property Type'] }}\nPreferred Areas - {{ $('Merge Lead Data').item.json.fields['Preferred Areas'] }}",
         "messages": {
           "messageValues": [
             {
@@ -239,6 +281,17 @@
     },
     {
       "parameters": {
+        "amount": 30
+      },
+      "id": "inb-wait-001",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2272, -208],
+      "webhookId": "97fd69fa-5d01-4ef5-a323-47868baf0cdd"
+    },
+    {
+      "parameters": {
         "resource": "Chatting",
         "operation": "Send Text",
         "session": "=default",
@@ -251,7 +304,7 @@
       "name": "Send WhatsApp Confirmation",
       "type": "n8n-nodes-waha.WAHA",
       "typeVersion": 202411,
-      "position": [2272, -208],
+      "position": [2496, -208],
       "credentials": {
         "wahaApi": { "id": "FkdOyqhhdQ01p2E8", "name": "WAHA account" }
       },
@@ -267,10 +320,13 @@
     "Build Transcript": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] },
     "OpenAI Chat Model1": { "ai_languageModel": [[{ "node": "Format Response", "type": "ai_languageModel", "index": 0 }]] },
     "Structured Output Parser1": { "ai_outputParser": [[{ "node": "Format Response", "type": "ai_outputParser", "index": 0 }]] },
-    "Format Response": { "main": [[{ "node": "Upsert Airtable Record", "type": "main", "index": 0 }]] },
+    "Format Response": { "main": [[{ "node": "Search Existing", "type": "main", "index": 0 }]] },
+    "Search Existing": { "main": [[{ "node": "Merge Lead Data", "type": "main", "index": 0 }]] },
+    "Merge Lead Data": { "main": [[{ "node": "Upsert Airtable Record", "type": "main", "index": 0 }]] },
     "Upsert Airtable Record": { "main": [[{ "node": "Basic LLM Chain1", "type": "main", "index": 0 }]] },
     "OpenAI Chat Model2": { "ai_languageModel": [[{ "node": "Basic LLM Chain1", "type": "ai_languageModel", "index": 0 }]] },
-    "Basic LLM Chain1": { "main": [[{ "node": "Send WhatsApp Confirmation", "type": "main", "index": 0 }]] }
+    "Basic LLM Chain1": { "main": [[{ "node": "Wait", "type": "main", "index": 0 }]] },
+    "Wait": { "main": [[{ "node": "Send WhatsApp Confirmation", "type": "main", "index": 0 }]] }
   },
   "settings": {
     "executionOrder": "v1",

@@ -1,1 +1,754 @@
-PLACEHOLDER
+# Phone Call Flow – Human & AI Explanation
+
+This file explains how the phone-call lead intake workflow works.
+
+It is written for:
+- humans who want to understand the automation
+- AI tools that need project context
+- future debugging and workflow changes
+
+The exact transcript extraction prompt is stored separately in:
+
+```text
+prompts/phone-transcript-extraction.md
+```
+
+---
+
+## 1. Purpose of the phone-call workflow
+
+There are two phone call flows: **outbound** (we call the customer after they submit a form) and **inbound** (the customer calls our Telnyx number).
+
+Both flows qualify the lead using the same AI phone agent and update the same Airtable table.
+
+### Outbound flow
+
+```text
+Form submitted
+→ create customer
+→ send SMS
+→ start AI call
+→ receive transcript
+→ extract lead data
+→ update Airtable
+→ send confirmation SMS
+```
+
+### Inbound flow
+
+```text
+Customer calls our Telnyx number
+→ Telnyx calls dynamic vars webhook (pre-call)
+→ n8n looks up caller in Airtable (returns most complete record)
+→ n8n returns known data + missing fields to Telnyx (wrapped in dynamic_variables)
+→ AI agent greets caller by name, asks only missing questions
+→ call ends
+→ Telnyx fires inbound webhook
+→ n8n fetches transcript from Telnyx API
+→ extract lead data from transcript
+→ search existing record by Phone
+→ merge: existing Airtable data wins, extraction only fills blanks
+→ upsert by record id (update existing row, or create if new)
+→ send WhatsApp confirmation (based on merged/saved data)
+```
+
+Important inbound rules:
+
+```text
+- Match on the Airtable record id, NOT Phone (Airtable upsert cannot merge on a Phone-type field).
+- Existing data is never overwritten by fresh extraction; the extractor can hallucinate
+  when the transcript has no answers (returning caller asked nothing), so merge keeps existing values.
+- Original Source and Pipeline Stage are NOT written on inbound update (preserved from first contact).
+- Last Contact Channel IS set to "Inbound Call" on every inbound call.
+- Telnyx dynamic_variables_webhook_timeout_ms is 5000ms (Airtable lookup takes ~1.8s).
+```
+
+---
+
+## 2. Workflow names
+
+```text
+Outbound:
+  Phone Lead Ingestion - DEV           (Part 1: form → call)
+                                        (Part 2: transcript → Airtable → SMS)
+
+Inbound:
+  Phone Dynamic Vars - DEV             (pre-call: look up caller, return variables)
+  Inbound Phone Lead Ingestion - DEV   (post-call: transcript → Airtable → SMS)
+```
+
+The outbound workflow currently has two main parts:
+
+```text
+Part 1 = form submission → outbound AI call
+Part 2 = Telnyx transcript webhook → Airtable update → SMS confirmation
+```
+
+---
+
+## 3. Workflow diagrams
+
+### Part 1 – Form submission to outbound call
+
+```mermaid
+flowchart LR
+    FRM(["On form submission"]) --> OPT{"If Opt-In?"}
+    OPT -->|"No - stop"| STOP(["End"])
+    OPT -->|"Yes - continue"| LLM["Basic LLM Chain<br/>clean phone + extract first name"]
+    LLM --> CRE["Create a record<br/>Airtable customers_dev"]
+    CRE --> SMS["Send a text message<br/>pre-call SMS via WhatsApp"]
+    SMS --> WT["Wait 30s"]
+    WT --> EL["Telnyx Calling Agent<br/>Telnyx outbound call"]
+    EL --> UPD["Update record<br/>save Call SID"]
+
+    subgraph ai1 ["LLM Chain sub-nodes"]
+        direction LR
+        OAI["OpenAI Chat Model<br/>gpt-4.1-mini"]
+        SOP["Structured Output Parser"]
+    end
+    OAI -.->|"ai_languageModel"| LLM
+    SOP -.->|"ai_outputParser"| LLM
+```
+
+### Part 2 – Transcript webhook to confirmation SMS
+
+```mermaid
+flowchart LR
+    WH(["Webhook<br/>Telnyx transcript"]) --> RW["Respond to Webhook"]
+    RW --> FR["Format Response<br/>extract structured data from transcript"]
+    FR --> UPD1["Update record1<br/>Airtable via Phone number"]
+    UPD1 --> LLM1["Basic LLM Chain1<br/>generate confirmation SMS"]
+    LLM1 --> SMS1(["Send a text message1<br/>final SMS to customer"])
+
+    subgraph ai2 ["LLM Chain sub-nodes"]
+        direction LR
+        OAI1["OpenAI Chat Model1<br/>gpt-4.1-mini"]
+        SOP1["Structured Output Parser1"]
+        OAI2["OpenAI Chat Model2<br/>gpt-4.1-mini"]
+    end
+    OAI1 -.->|"ai_languageModel"| FR
+    SOP1 -.->|"ai_outputParser"| FR
+    OAI2 -.->|"ai_languageModel"| LLM1
+```
+
+---
+
+## 4. Part 1 – Form submission and call start
+
+### Step 1 – Form is submitted
+
+Node:
+
+```text
+On form submission
+```
+
+Purpose:
+
+```text
+Receives the first customer information from a simple form.
+```
+
+Collected fields:
+
+```text
+Customer Name
+Email
+Phone Number
+Opt in
+```
+
+---
+
+### Step 2 – Check Opt-In
+
+Node:
+
+```text
+If Opt-In
+```
+
+Purpose:
+
+```text
+Continues only if the customer selected Yes.
+```
+
+Simple rule:
+
+```text
+Opt in = Yes → continue
+Opt in = No  → stop
+```
+
+This protects the workflow from calling customers who did not agree.
+
+---
+
+### Step 3 – Clean phone number and first name
+
+Node:
+
+```text
+Basic LLM Chain
+```
+
+Purpose:
+
+```text
+Formats the phone number and extracts the customer first name.
+```
+
+The AI receives:
+
+```text
+Customer Phone Number
+Customer First Name / Customer Name
+Customer Email Address
+```
+
+It returns:
+
+```text
+Customer Phone Number in E.164 format
+Customer First name
+Customer Email Address
+```
+
+Example:
+
+```text
+0049 151 23456789 → +4915123456789
+Maria Becker → Maria
+```
+
+---
+
+### Step 4 – Create Airtable customer
+
+Node:
+
+```text
+Create a record
+```
+
+Purpose:
+
+```text
+Creates the first Airtable row before the call starts.
+```
+
+DEV workflow should write to:
+
+```text
+customers_dev
+```
+
+PROD workflow should write to:
+
+```text
+customers_prod
+```
+
+Recommended field mapping:
+
+```text
+Name = Customer Name
+First Name = extracted first name
+Email = customer email
+Phone = cleaned E.164 phone number
+Opt In = true
+Environment = dev or prod
+Pipeline Stage = Qualifying
+Original Source = Form
+Last Contact Channel = Form
+Age = 0
+Number of Children = 0
+Net Salary = 0
+Budget = 0
+```
+
+Important:
+
+```text
+If the call is started because the customer submitted a form,
+Original Source should be Form.
+```
+
+---
+
+### Step 5 – Send pre-call SMS
+
+Node:
+
+```text
+Send a text message
+```
+
+Purpose:
+
+```text
+Tells the customer that an AI agent will call them shortly.
+```
+
+Example meaning:
+
+```text
+Thanks for opting in. Our AI agent will call you soon. Please accept the call and answer the screening questions.
+```
+
+---
+
+### Step 6 – Wait before calling
+
+Node:
+
+```text
+Wait
+```
+
+Purpose:
+
+```text
+Waits 30 seconds before starting the call.
+```
+
+Why:
+
+```text
+Gives the customer a small pause after receiving the SMS.
+```
+
+---
+
+### Step 7 – Start Telnyx outbound call
+
+Node:
+
+```text
+Telnyx Calling Agent
+```
+
+Purpose:
+
+```text
+Starts the outbound AI phone call through Telnyx.
+```
+
+It sends:
+
+```text
+From = Telnyx outbound number
+To = customer phone number (E.164)
+AIAssistantId = Telnyx AI assistant ID
+```
+
+Important security rule:
+
+```text
+Do not store API keys directly inside exported workflow JSON.
+Use n8n credentials or environment variables instead.
+```
+
+---
+
+### Step 8 – Save call IDs in Airtable
+
+Node:
+
+```text
+Update record
+```
+
+Purpose:
+
+```text
+Updates the Airtable row with the call identifiers.
+```
+
+Recommended fields:
+
+```text
+Call SID = Telnyx call_control_id
+Call Status = Initiated
+```
+
+---
+
+## 5. Part 2 – Transcript webhook and lead extraction
+
+### Step 9 – Transcript webhook receives call result
+
+Node:
+
+```text
+Webhook
+```
+
+Purpose:
+
+```text
+Receives the call summary from Telnyx after the AI call ends.
+```
+
+Expected data includes:
+
+```text
+call_summary
+phone_number
+```
+
+---
+
+### Step 10 – Respond quickly to webhook
+
+Node:
+
+```text
+Respond to Webhook
+```
+
+Purpose:
+
+```text
+Confirms that the transcript was received.
+```
+
+Example response:
+
+```json
+{
+  "status": "received",
+  "message": "Transcript accepted for processing"
+}
+```
+
+---
+
+### Step 11 – Extract structured data from transcript
+
+Node:
+
+```text
+Format Response
+```
+
+Purpose:
+
+```text
+Reads the phone transcript and extracts the customer's answers.
+```
+
+The exact prompt is stored in:
+
+```text
+prompts/phone-transcript-extraction.md
+```
+
+The AI extracts:
+
+```text
+nationality
+age
+maritalStatus
+numberChildren
+netSalary
+budgetRange
+timeline
+mortgageStatus
+propertyType
+preferredAreas
+qualifiedLead
+```
+
+Important:
+
+```text
+The AI should extract only the customer's answers,
+not the agent's questions.
+```
+
+---
+
+## 6. Fixed values for transcript extraction
+
+The extracted values must match Airtable select values exactly.
+
+### Marital Status
+
+```text
+Single
+Married
+Divorced
+Widowed
+Unknown
+```
+
+### Timeline
+
+```text
+0-3 months
+3-6 months
+6-12 months
+12+ months
+Just exploring
+```
+
+### Mortgage Status
+
+```text
+No mortgage yet - needs help
+Mortgage in principle
+Mortgage approved
+Already has mortgage
+Unknown
+```
+
+### Property Type
+
+```text
+Apartment
+House
+Detached house
+Semi-detached house
+Plot of land
+Commercial
+Other
+```
+
+### Call Status
+
+```text
+Not Initiated
+Initiated
+Answered
+Completed
+Failed
+No Answer
+```
+
+---
+
+## 7. Update customer after transcript
+
+Node:
+
+```text
+Update record1
+```
+
+Purpose:
+
+```text
+Updates the customer row using the extracted transcript data.
+```
+
+Matching field:
+
+```text
+Phone
+```
+
+Recommended update fields:
+
+```text
+Age
+Budget
+Call Status = Completed
+Conversation ID
+Marital Status
+Mortgage Status
+Nationality
+Net Salary
+Number of Children
+Pipeline Stage = Awaiting Documents
+Preferred Areas
+Property Type
+Qualified Lead
+Timeline
+Last Contact Channel = Outbound
+```
+
+Important:
+
+```text
+Do not change Original Source during transcript update.
+Only update Last Contact Channel.
+```
+
+---
+
+## 8. Generate confirmation SMS
+
+Node:
+
+```text
+Basic LLM Chain1
+```
+
+Purpose:
+
+```text
+Creates a short friendly SMS confirming the customer information was saved.
+```
+
+Current behavior:
+
+```text
+Generates a French confirmation SMS.
+```
+
+Example meaning:
+
+```text
+Hello Maria, your information has been saved. We will contact you with the next steps for your financing request.
+```
+
+---
+
+## 9. Send final SMS
+
+Node:
+
+```text
+Send a text message1
+```
+
+Purpose:
+
+```text
+Sends the final confirmation SMS to the customer.
+```
+
+The SMS is sent to the phone number stored in Airtable.
+
+---
+
+## 10. Airtable table rules
+
+The project uses two tables:
+
+```text
+customers_dev
+customers_prod
+```
+
+Simple rule:
+
+```text
+DEV workflow  → customers_dev
+PROD workflow → customers_prod
+```
+
+Environment field:
+
+```text
+customers_dev  → Environment = dev
+customers_prod → Environment = prod
+```
+
+Source tracking:
+
+```text
+Original Source = first channel where the lead came from
+Last Contact Channel = latest channel used
+```
+
+For this phone-call workflow:
+
+```text
+Original Source = Form when the customer starts from the form
+Last Contact Channel = Form when the form creates the row
+Last Contact Channel = Outbound when the Telnyx call happens
+```
+
+---
+
+## 11. Recommended DEV/PROD behavior
+
+### DEV workflow
+
+```text
+Table = customers_dev
+Environment = dev
+Use test phone numbers
+Use test credentials if possible
+```
+
+### PROD workflow
+
+```text
+Table = customers_prod
+Environment = prod
+Use real phone number
+Use production credentials
+```
+
+---
+
+## 12. GitHub and workflow versioning
+
+Do not mainly edit complex n8n workflows manually in JSON.
+
+Recommended process:
+
+```text
+1. Create feature branch from dev
+2. Make changes visually in n8n DEV workflow
+3. Test with customers_dev
+4. Export workflow JSON
+5. Replace JSON file locally
+6. Commit and push feature branch
+7. Pull request: feature → dev
+8. Pull request: dev → main
+9. Import main version into n8n PROD workflow
+```
+
+Simple meaning:
+
+```text
+n8n DEV = where you build/test
+GitHub = where you save/review versions
+n8n PROD = where the stable workflow runs live
+```
+
+---
+
+## 13. Common mistakes to avoid
+
+```text
+Do not call customers without Opt-In.
+Do not test with customers_prod.
+Do not send real customers to customers_dev.
+Do not store API keys directly in workflow JSON.
+Do not delete Airtable fields before checking n8n mappings.
+Do not rename Airtable fields without updating n8n nodes.
+Do not change Original Source after the row was created.
+Do update Last Contact Channel when a new contact happens.
+```
+
+---
+
+## 14. Short summary
+
+```text
+Form collects basic customer data
+Opt-In protects consent
+AI cleans phone and first name
+Airtable row is created
+SMS warns customer about call
+Telnyx starts outbound call
+Call IDs are saved
+Transcript webhook receives call result
+AI extracts structured financing data
+Airtable is updated
+Final SMS confirms saved data
+```
+
+Most important rule:
+
+```text
+Initial form creates the lead.
+AI phone call completes the qualification.
+Transcript extraction updates the same Airtable row.
+```
